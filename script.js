@@ -103,3 +103,26 @@ function renderList(id, data) {
     el.appendChild(row);
   });
 }
+
+function initDropdown() {
+  const select = document.getElementById("itemSelect");
+  select.innerHTML = "";
+
+  Object.keys(recipes)
+    .filter(item => recipes[item].components || recipes[item].materials)
+    .forEach(item => {
+      const opt = document.createElement("option");
+      opt.value = item;
+      opt.textContent = item;
+      select.appendChild(opt);
+    });
+}
+
+window.onload = () => {
+  initDropdown();
+
+  const select = document.getElementById("itemSelect");
+  if (select.options.length > 0) {
+    select.selectedIndex = 0;
+  }
+};
