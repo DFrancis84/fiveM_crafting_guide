@@ -42,7 +42,7 @@ let recipes = {
 // 🧩 Recursive expansion of components
 function getComponents(item, qty, result = {}) {
   const data = recipes[item];
-  if (!data || !data.components) return;
+  if (!data || !data.components) return result;
 
   data.components.forEach(c => {
     const total = c.qty * qty;
