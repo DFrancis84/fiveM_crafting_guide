@@ -1,4 +1,43 @@
-let recipes = {};
+let recipes = {
+  // Accessories
+  "Lockpick": {
+    materials: [
+      { item: "Plastic", qty: 5 },
+      { item: "Rubber", qty: 15 },
+      { item: "Scrap", qty: 10 },
+    ]
+  },
+
+  // Weapons
+  "Tech9": {
+    components: [
+      { item: "Metal Spring", qty: 1 },
+      { item: "Gun Trigger", qty: 1 }
+    ],
+    materials: [
+      { item: "Plastic", qty: 640 },
+      { item: "Aluminum", qty: 180 },
+      { item: "Scrap", qty: 120 },
+      { item: "Titanium", qty: 150 }
+    ]
+  },
+
+  "Metal Spring": {
+    materials: [
+      { item: "Plastic", qty: 120 },
+      { item: "Aluminum", qty: 30 },
+      { item: "Scrap", qty: 15 }
+    ]
+  },
+
+  "Gun Trigger": {
+    materials: [
+      { item: "Plastic", qty: 130 },
+      { item: "Aluminum", qty: 40 },
+      { item: "Scrap", qty: 25 }
+    ]
+  },
+};
 
 // 🧩 Recursive expansion of components
 function getComponents(item, qty, result = {}) {
