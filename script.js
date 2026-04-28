@@ -36,7 +36,7 @@ let recipes = {
       { item: "Aluminum", qty: 40 },
       { item: "Scrap", qty: 25 }
     ]
-  },
+  }
 };
 
 // 🧩 Recursive expansion of components
