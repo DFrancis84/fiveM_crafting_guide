@@ -205,6 +205,40 @@ function initDropdown() {
 }
 
 // ===============================
+//   ADD ITEM
+// ===============================
+const SHEET_ENDPOINT = "https://script.google.com/macros/s/AKfycbxksBFBhN-NWPLRbD4sPk5UuqtRZWmH9z-hp9OLaabeXba3lRFM7A1nO2xzr6uQW3yd-w/exec";
+
+function openAddItem() {
+  document.getElementById("popup").style.display = "block";
+}
+
+function closeAddItem() {
+  document.getElementById("popup").style.display = "none";
+}
+
+async function submitItem() {
+  const payload = {
+    item: document.getElementById("newItem").value,
+    type: document.getElementById("newType").value,
+    name: document.getElementById("newName").value,
+    qty: Number(document.getElementById("newQty").value)
+  };
+
+  await fetch(SHEET_ENDPOINT, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+
+  alert("Item added!");
+
+  closeAddItem();
+
+  // optional refresh
+  location.reload();
+}
+
+// ===============================
 // 🚀 BOOT SEQUENCE
 // ===============================
 window.onload = async () => {
