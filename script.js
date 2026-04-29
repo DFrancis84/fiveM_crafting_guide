@@ -1,4 +1,15 @@
 let recipes = {};
+const nonRecyclableMaterials = new Set([
+  "Titanium",
+  "Circuit Board",
+  "Control Chip",
+  "Power Supply",
+  "Charcoal",
+  "Sulfur",
+  "Gunpowder",
+  "Golden Nugget",
+  "Copper Ore"
+  ]);
 
 // ===============================
 // 🧠 LOAD GOOGLE SHEETS DATA
@@ -126,6 +137,20 @@ function getMaterials(item, qty, result = {}) {
   return result;
 }
 
+function getRecyclableBreakdown(materials) {
+  let total = 0;
+  const breakdown = {};
+
+  Object.entries(materials).forEach(([item, qty]) => {
+    if (!nonRecyclableMaterials.has(item)) {
+      total += qty;
+      breakdown[item] = qty;
+    }
+  });
+
+  return { total, breakdown };
+}
+
 // ===============================
 // 🎯 UI ACTION
 // ===============================
@@ -138,6 +163,12 @@ function calculate() {
 
   renderList("components", components);
   renderList("materials", materials);
+
+  // ♻️ recyclable calculation (STEP 4 goes HERE)
+  const { total } = getRecyclableBreakdown(materials);
+
+  document.getElementById("recyclableTotal").textContent =
+    `♻️ Recyclable Materials Needed: ${total}`;
 }
 
 // ===============================
