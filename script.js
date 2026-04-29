@@ -1,11 +1,91 @@
 let recipes = {};
 
+// ===============================
+// 🧠 LOAD GOOGLE SHEETS DATA
+// ===============================
 async function loadRecipes() {
-  const res = await fetch("recipes.json");
-  recipes = await res.json();
+  const sheetId = "1-VghUNT10zMsQoYNkADkZDu2yyW4Al0ealROIu6A2Zc";
+
+  const urls = {
+    base: `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=BaseMaterials`,
+    direct: `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=DirectMaterials`,
+    components: `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=Recipes`
+  };
+
+  const [base, direct, components] = await Promise.all([
+    fetchSheet(urls.base),
+    fetchSheet(urls.direct),
+    fetchSheet(urls.components)
+  ]);
+
+  buildWideMaterials(base);
+  buildWideMaterials(direct);
+  buildComponents(components);
 }
 
-// 🧩 Recursive expansion of components
+// ===============================
+// 📊 PARSE GOOGLE SHEET RESPONSE
+// ===============================
+async function fetchSheet(url) {
+  const res = await fetch(url);
+  const text = await res.text();
+  const json = JSON.parse(text.substring(47).slice(0, -2));
+  return json.table.rows;
+}
+
+// ===============================
+// 🧱 BASE + DIRECT MATERIALS
+// (WIDE FORMAT SHEETS)
+// ===============================
+function buildWideMaterials(rows) {
+  const mats = ["Plastic", "Aluminum", "Steel", "Rubber", "Scrap", "Electronics", "Glass", "Wire", "Titanium", "Circuit Board", "Control Chip", "Power Supply", "Charcoal", "Sulfur", "Gunpowder", "Golden Nugget", "Copper Ore"];
+
+  rows.forEach(row => {
+    const item = row.c[0]?.v;
+    if (!item) return;
+
+    if (!recipes[item]) {
+      recipes[item] = { components: [], materials: [] };
+    }
+
+    mats.forEach((mat, i) => {
+      const qty = row.c[i + 1]?.v;
+
+      if (qty && qty > 0) {
+        recipes[item].materials.push({
+          item: mat,
+          qty: Number(qty)
+        });
+      }
+    });
+  });
+}
+
+// ===============================
+// 🧩 COMPONENTS (NARROW FORMAT)
+// ===============================
+function buildComponents(rows) {
+  rows.forEach(row => {
+    const item = row.c[0]?.v;
+    const component = row.c[1]?.v;
+    const qty = Number(row.c[2]?.v);
+
+    if (!item || !component) return;
+
+    if (!recipes[item]) {
+      recipes[item] = { components: [], materials: [] };
+    }
+
+    recipes[item].components.push({
+      item: component,
+      qty: qty || 1
+    });
+  });
+}
+
+// ===============================
+// 🔁 RECURSIVE COMPONENT EXPANSION
+// ===============================
 function getComponents(item, qty, result = {}) {
   const data = recipes[item];
   if (!data || !data.components) return result;
@@ -15,14 +95,15 @@ function getComponents(item, qty, result = {}) {
 
     result[c.item] = (result[c.item] || 0) + total;
 
-    // recurse deeper
     getComponents(c.item, total, result);
   });
 
   return result;
 }
 
-// 📦 Flatten raw materials
+// ===============================
+// 📦 FULL MATERIAL FLATTENING
+// ===============================
 function getMaterials(item, qty, result = {}) {
   const data = recipes[item];
   if (!data) return result;
@@ -45,19 +126,23 @@ function getMaterials(item, qty, result = {}) {
   return result;
 }
 
-// 🎯 UI render
+// ===============================
+// 🎯 UI ACTION
+// ===============================
 function calculate() {
   const item = document.getElementById("itemSelect").value;
   const qty = Number(document.getElementById("quantity").value);
 
-  const components = getComponents(item, qty) || {};
-  const materials = getMaterials(item, qty) || {};
+  const components = getComponents(item, qty);
+  const materials = getMaterials(item, qty);
 
   renderList("components", components);
   renderList("materials", materials);
 }
 
-// 🧾 reusable renderer
+// ===============================
+// 🧾 RENDER UI LIST
+// ===============================
 function renderList(id, data) {
   const el = document.getElementById(id);
   el.innerHTML = "";
@@ -70,12 +155,16 @@ function renderList(id, data) {
   });
 }
 
+// ===============================
+// 🎮 DROPDOWN INIT
+// ===============================
 function initDropdown() {
   const select = document.getElementById("itemSelect");
   select.innerHTML = "";
 
   Object.keys(recipes)
     .filter(item => recipes[item].components || recipes[item].materials)
+    .sort()
     .forEach(item => {
       const opt = document.createElement("option");
       opt.value = item;
@@ -84,9 +173,12 @@ function initDropdown() {
     });
 }
 
+// ===============================
+// 🚀 BOOT SEQUENCE
+// ===============================
 window.onload = async () => {
-  await loadRecipes();   // ⬅️ load JSON first
-  initDropdown();        // ⬅️ then populate dropdown
+  await loadRecipes();
+  initDropdown();
 
   const select = document.getElementById("itemSelect");
   if (select.options.length > 0) {
