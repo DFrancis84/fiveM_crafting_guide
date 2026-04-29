@@ -58,8 +58,11 @@
   <!-- AddItem Popup -->
   <div id="popup" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); background:#111827; padding:20px; border-radius:10px;">
   
-  <h3>Add Crafting Entry</h3>
-
+  <h3 id="formTitle">Add / Update Crafting Entry</h3>
+  <select id="mode">
+    <option value="add">Add</option>
+    <option value="update">Update</option>
+  </select>
   <input id="newItem" placeholder="Item (e.g. Tech9)">
   <input id="newType" placeholder="Type (component/material)">
   <input id="newName" placeholder="Name (e.g. Metal Spring)">
