@@ -225,16 +225,16 @@ async function submitItem() {
     qty: Number(document.getElementById("newQty").value)
   };
 
+  const mode = document.getElementById("mode").value;
+
   await fetch(SHEET_ENDPOINT, {
     method: "POST",
     body: JSON.stringify(payload)
   });
 
-  alert("Item added!");
+  alert(mode === "update" ? "Item updated!" : "Item added!");
 
   closeAddItem();
-
-  // optional refresh
   location.reload();
 }
 
