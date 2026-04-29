@@ -1,5 +1,4 @@
 {
-  // Accessories
   "Lockpick": {
     materials: [
       { item: "Plastic", qty: 5 },
@@ -25,7 +24,6 @@
     ]
   },
 
-  // Weapons
   "Tech9": {
     components: [
       { item: "Metal Spring", qty: 1 },
@@ -39,7 +37,6 @@
     ]
   },
 
-// Components
   "Metal Spring": {
     materials: [
       { item: "Plastic", qty: 120 },
@@ -55,4 +52,4 @@
       { item: "Scrap", qty: 25 }
     ]
   }
-};
+}
