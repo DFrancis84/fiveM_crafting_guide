@@ -28,6 +28,7 @@
       >
 
       <button onclick="calculate()">Analyze</button>
+      <button onclick="openAddItem()">+ Add Item</button>
     </div>
 
     <!-- COMPONENTS PANEL -->
@@ -54,5 +55,21 @@
   <!-- SCRIPT (must load AFTER DOM) -->
   <script src="script.js"></script>
 
+  <!-- AddItem Popup -->
+  <div id="popup" style="display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%); background:#111827; padding:20px; border-radius:10px;">
+  
+  <h3>Add Crafting Entry</h3>
+
+  <input id="newItem" placeholder="Item (e.g. Tech9)">
+  <input id="newType" placeholder="Type (component/material)">
+  <input id="newName" placeholder="Name (e.g. Metal Spring)">
+  <input id="newQty" type="number" placeholder="Qty">
+
+  <br><br>
+
+  <button onclick="submitItem()">Submit</button>
+  <button onclick="closeAddItem()">Cancel</button>
+</div>
+  
 </body>
 </html>
