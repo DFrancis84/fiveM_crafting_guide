@@ -1,35 +1,58 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Crafting Console</title>
+
   <link rel="stylesheet" href="style.css">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
+
 <body>
-  
-<div class="container">
-  <h1>Crafting Console</h1>
 
-  <div class="controls">
-    <select id="itemSelect"></select>
-    <input id="quantity" type="number" value="1" min="1">
-    <button onclick="calculate()">Analyze</button>
+  <div class="container">
+
+    <!-- HEADER -->
+    <h1>🛠 Crafting Console</h1>
+
+    <!-- CONTROLS -->
+    <div class="controls">
+      <select id="itemSelect"></select>
+
+      <input
+        id="quantity"
+        type="number"
+        value="1"
+        min="1"
+      >
+
+      <button onclick="calculate()">Analyze</button>
+    </div>
+
+    <!-- COMPONENTS PANEL -->
+    <div class="panel">
+      <h2>🧩 Components Required</h2>
+      <div id="components"></div>
+    </div>
+
+    <!-- MATERIALS PANEL -->
+    <div class="panel">
+      <h2>📦 Total Materials</h2>
+      <div id="materials"></div>
+
+      <!-- ♻️ RECYCLABLE TOTAL (NEW FIELD) -->
+      <div style="margin-top: 12px; font-weight: bold; color: #38bdf8;">
+        <span id="recyclableTotal">
+          ♻️ Recyclable Materials Needed: 0
+        </span>
+      </div>
+    </div>
+
   </div>
 
-  <div class="panel">
-    <h2>Components Required</h2>
-    <div id="components"></div>
-  </div>
+  <!-- SCRIPT (must load AFTER DOM) -->
+  <script src="script.js"></script>
 
-  <div class="panel">
-    <h2>Total Materials</h2>
-    <div id="materials"></div>
-  </div>
-</div>
-
-  <div style="margin-top:10px; font-weight:bold; color:#38bdf8;">
-  <span id="recyclableTotal">♻️ Recyclable Materials Needed: 0</span>
-</div>
-  
-<script src="script.js"></script>
 </body>
 </html>
