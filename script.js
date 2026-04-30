@@ -39,16 +39,11 @@ window.onload = async () => {
 // 📥 LOAD DATA (HEADER-BASED)
 // ===============================
 async function loadData() {
-  const [itemsRes, recipesRes] = await Promise.all([
-    fetch(ITEMS_URL),
-    fetch(RECIPES_URL)
-  ]);
+  const res = await fetch("/api/data");
+  const data = await res.json();
 
-  const itemsData = await itemsRes.json();
-  const recipesData = await recipesRes.json();
-
-  parseItems(itemsData);
-  parseRecipes(recipesData);
+  items = data.items;
+  recipes = data.recipes;
 }
 
 // ===============================
