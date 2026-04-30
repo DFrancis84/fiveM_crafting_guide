@@ -59,43 +59,29 @@
   <!-- =========================
        POPUP: ADD / UPDATE FORM
   ========================== -->
-  <div id="popup" style="
-    display:none;
-    position:fixed;
-    top:20%;
-    left:50%;
-    transform:translateX(-50%);
-    background:#111827;
-    padding:20px;
-    border-radius:10px;
-    width:300px;
-    border:1px solid #334155;
-  ">
+  <div id="popup" style="display:none;">
+  <div>
 
-    <h3 id="formTitle">Add / Update Item</h3>
+    <h3>Add / Update Item</h3>
 
     <!-- MODE -->
-    <select id="mode" style="width:100%; margin-bottom:10px;">
+    <select id="mode">
       <option value="add">Add</option>
       <option value="update">Update</option>
     </select>
 
     <!-- FIELDS -->
-    <input id="newItem" placeholder="Item (e.g. Tech9)" style="width:100%; margin-bottom:8px;">
-    <input id="newType" placeholder="Type (component/material)" style="width:100%; margin-bottom:8px;">
-    <input id="newName" placeholder="Name (e.g. Metal Spring)" style="width:100%; margin-bottom:8px;">
-    <input id="newQty" type="number" placeholder="Qty" style="width:100%; margin-bottom:12px;">
+    <input id="newItem" placeholder="Item">
+    <input id="newType" placeholder="Type">
+    <input id="newName" placeholder="Name">
+    <input id="newQty" type="number" placeholder="Qty">
 
-    <!-- ACTIONS -->
-    <button onclick="submitItem()" style="width:100%; margin-bottom:6px;">
-      Submit
-    </button>
-
-    <button onclick="closeAddItem()" style="width:100%;">
-      Cancel
-    </button>
+    <!-- FUNCTIONS -->
+    <button onclick="submitItem()">Submit</button>
+    <button onclick="closeAddItem()">Cancel</button>
 
   </div>
+</div>
 
   <!-- SCRIPT -->
   <script src="script.js"></script>
