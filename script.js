@@ -39,7 +39,7 @@ window.onload = async () => {
 // 📥 LOAD DATA (HEADER-BASED)
 // ===============================
 async function loadData() {
-  const res = await fetch("https://crafting-api.devinfrancis84.workers.dev/api/data");
+  const res = await fetch("/api/data");
   const data = await res.json();
 
   items = data.items;
