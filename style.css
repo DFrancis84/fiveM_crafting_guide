@@ -80,6 +80,28 @@ h1 {
   max-width: 350px;
 }
 
+.modal {
+  background: #111827;
+  padding: 20px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+}
+
+.modal h4 {
+  margin-top: 15px;
+}
+
+.row-input {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.row-input input {
+  flex: 1;
+  padding: 8px;
+}
 /* ===== MOBILE FIXES ===== */
 @media (max-width: 600px) {
 
