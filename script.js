@@ -226,21 +226,24 @@ async function submitItem() {
     code: document.getElementById("authCode").value
   };
 
-  const res = await fetch(SHEET_ENDPOINT, {
-  method: "POST",
-  mode: "no-cors",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify(payload)
-});
+try {
+  await fetch(SHEET_ENDPOINT, {
+    method: "POST",
+    mode: "no-cors",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
 
-  const result = await res.json();
+  alert("✅ Submitted (check sheet)");
 
-  if (!result.ok) {
-    alert("❌ Invalid or expired code");
-    return;
-  }
+  closeAddItem();
+  location.reload();
+
+} catch (err) {
+  alert("❌ Failed to submit");
+}
 
   alert("✅ Success");
   closeAddItem();
