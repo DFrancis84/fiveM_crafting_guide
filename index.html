@@ -59,28 +59,29 @@
   <!-- =========================
        POPUP: ADD / UPDATE FORM
   ========================== -->
-  <div id="popup" style="display:none;">
-    <div>
+<div id="popup" style="display:none;">
+  <div class="modal">
 
-    <h3>Add / Update Item</h3>
+    <h3>🛠 Crafting Editor</h3>
 
-    <!-- MODE -->
-    <select id="mode">
-      <option value="add">Add</option>
-      <option value="update">Update</option>
-    </select>
+    <!-- ITEM NAME -->
+    <input id="newItem" placeholder="Item Name (e.g. Tech9)">
 
-    <!-- FIELDS -->
-    <input id="newItem" placeholder="Item">
-    <input id="newType" placeholder="Type">
-    <input id="newName" placeholder="Name">
-    <input id="newQty" type="number" placeholder="Qty">
+    <!-- COMPONENTS -->
+    <h4>🧩 Components</h4>
+    <div id="componentsList"></div>
+    <button onclick="addRow('componentsList')">➕ Add Component</button>
 
-    <!-- 🔐 AUTH CODE FIELD -->
-    <input id="authCode" placeholder="Authenticator Code (6-digit)">    
-    
-    <!-- FUNCTIONS -->
-    <button onclick="submitItem()">Submit</button>
+    <!-- MATERIALS -->
+    <h4>📦 Materials</h4>
+    <div id="materialsList"></div>
+    <button onclick="addRow('materialsList')">➕ Add Material</button>
+
+    <!-- AUTH -->
+    <input id="authCode" placeholder="Authenticator Code" maxlength="6">
+
+    <!-- ACTIONS -->
+    <button onclick="submitItem()">💾 Save</button>
     <button onclick="closeAddItem()">Cancel</button>
 
   </div>
