@@ -60,8 +60,7 @@
        POPUP: ADD / UPDATE FORM
   ========================== -->
   <div id="popup" style="display:none;">
-  <input id="authCode" placeholder="Authenticator Code (6-digit)">
-  <div>
+    <div>
 
     <h3>Add / Update Item</h3>
 
@@ -77,6 +76,9 @@
     <input id="newName" placeholder="Name">
     <input id="newQty" type="number" placeholder="Qty">
 
+    <!-- 🔐 AUTH CODE FIELD -->
+    <input id="authCode" placeholder="Authenticator Code (6-digit)">    
+    
     <!-- FUNCTIONS -->
     <button onclick="submitItem()">Submit</button>
     <button onclick="closeAddItem()">Cancel</button>
