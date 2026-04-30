@@ -226,6 +226,7 @@ async function submitItem() {
     code: document.getElementById("authCode").value
   };
 
+const SHEET_ENDPOINT = "https://crafting-api.devinfrancis84.workers.dev";
 try {
   await fetch(SHEET_ENDPOINT, {
     method: "POST",
