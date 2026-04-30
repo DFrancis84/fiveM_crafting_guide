@@ -217,40 +217,69 @@ function closeAddItem() {
   document.getElementById("popup").style.display = "none";
 }
 
+function addRow(containerId) {
+  const container = document.getElementById(containerId);
+
+  const row = document.createElement("div");
+  row.className = "row-input";
+
+  row.innerHTML = `
+    <input placeholder="Name">
+    <input type="number" placeholder="Qty">
+    <button onclick="this.parentElement.remove()">❌</button>
+  `;
+
+  container.appendChild(row);
+}
+
 async function submitItem() {
+  const item = document.getElementById("newItem").value;
+  const authCode = document.getElementById("authCode").value;
+
+  const components = getListData("componentsList");
+  const materials = getListData("materialsList");
+
+  let type = "material";
+
+  if (components.length > 0) {
+    type = "item";
+  } else if (materials.length > 0) {
+    type = "component";
+  }
+
   const payload = {
-    item: document.getElementById("newItem").value,
-    type: document.getElementById("newType").value,
-    name: document.getElementById("newName").value,
-    qty: Number(document.getElementById("newQty").value),
-    code: document.getElementById("authCode").value
+    item,
+    type,
+    components,
+    materials,
+    code: authCode
   };
 
-const SHEET_ENDPOINT = "https://crafting-api.devinfrancis84.workers.dev";
-try {
   await fetch(SHEET_ENDPOINT, {
     method: "POST",
-    mode: "no-cors",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify(payload)
   });
 
-  alert("✅ Submitted (check sheet)");
-
-  closeAddItem();
-  location.reload();
-
-} catch (err) {
-  alert("❌ Failed to submit");
-}
-
-  alert("✅ Success");
+  alert("✅ Saved");
   closeAddItem();
   location.reload();
 }
 
+function getListData(containerId) {
+  const rows = document.querySelectorAll(`#${containerId} .row-input`);
+
+  return Array.from(rows).map(row => {
+    const inputs = row.querySelectorAll("input");
+
+    return {
+      name: inputs[0].value,
+      qty: Number(inputs[1].value)
+    };
+  }).filter(r => r.name && r.qty);
+}
 // ===============================
 // 🚀 BOOT SEQUENCE
 // ===============================
