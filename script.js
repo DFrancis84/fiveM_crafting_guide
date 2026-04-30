@@ -227,9 +227,13 @@ async function submitItem() {
   };
 
   const res = await fetch(SHEET_ENDPOINT, {
-    method: "POST",
-    body: JSON.stringify(payload)
-  });
+  method: "POST",
+  mode: "no-cors",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify(payload)
+});
 
   const result = await res.json();
 
