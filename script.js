@@ -222,18 +222,23 @@ async function submitItem() {
     item: document.getElementById("newItem").value,
     type: document.getElementById("newType").value,
     name: document.getElementById("newName").value,
-    qty: Number(document.getElementById("newQty").value)
+    qty: Number(document.getElementById("newQty").value),
+    code: document.getElementById("authCode").value
   };
 
-  const mode = document.getElementById("mode").value;
-
-  await fetch(SHEET_ENDPOINT, {
+  const res = await fetch(SHEET_ENDPOINT, {
     method: "POST",
     body: JSON.stringify(payload)
   });
 
-  alert(mode === "update" ? "Item updated!" : "Item added!");
+  const result = await res.json();
 
+  if (!result.ok) {
+    alert("❌ Invalid or expired code");
+    return;
+  }
+
+  alert("✅ Success");
   closeAddItem();
   location.reload();
 }
