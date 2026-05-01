@@ -26,6 +26,7 @@ const nonRecyclableMaterials = new Set([
 // ===============================
 let items = {};     // { itemName: { xp, materials:{} } }
 let recipes = {};   // { itemName: [ { component, qty } ] }
+let costMap = {};
 
 // ===============================
 // 🚀 INIT
@@ -75,6 +76,7 @@ async function loadData() {
 
   items = data.items;
   recipes = data.recipes;
+  costMap = data.costs;
 }
 
 // ===============================
@@ -231,6 +233,36 @@ function getRecyclableTotal(materials) {
 }
 
 // ===============================
+// 💲 CRAFTING COST CALCULATION
+// =============================== 
+function getCraftCost(materials) {
+  let totalCost = 0;
+
+  let recyclableTotal = 0;
+
+  Object.entries(materials).forEach(([mat, qty]) => {
+    if (mat === "Titanium" ||
+        mat === "Circuit Board" ||
+        mat === "Control Chip" ||
+        mat === "Power Supply") {
+
+      const costPer = costMap[mat] || 0;
+      totalCost += qty * costPer;
+
+    } else {
+      // everything else = recyclable
+      recyclableTotal += qty;
+    }
+  });
+
+  // apply recyclable cost
+  const recyclableCost = costMap["Recyclable Materials"] || 0;
+  totalCost += recyclableTotal * recyclableCost;
+
+  return totalCost;
+}
+
+// ===============================
 // 🎯 MAIN CALCULATE
 // ===============================
 function calculate() {
@@ -241,6 +273,7 @@ function calculate() {
   const materials = getMaterials(item, qty);
   const xp = getXP(item, qty);
   const recyclable = getRecyclableTotal(materials);
+  const cost = getCraftCost(materials);
 
   renderList("components", components);
   renderList("materials", materials);
@@ -248,6 +281,8 @@ function calculate() {
   document.getElementById("xpTotal").textContent = `⭐ XP Gained: ${xp}`;
   document.getElementById("recyclableTotal").textContent =
     `♻️ Recyclable Materials Needed: ${recyclable}`;
+  document.getElementById("costTotal").textContent =
+    `💰 Cost To Make: ${cost.toLocaleString()}`;
 }
 
 // ===============================
