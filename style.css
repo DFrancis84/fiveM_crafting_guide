@@ -180,12 +180,9 @@ button:active {
 .section-divider {
   height: 1px;
   margin: 12px 0 10px;
-  background: linear-gradient(
-    to right,
-    transparent,
-    #334155,
-    transparent
-  );
+  background: #38bdf8;
+  opacity: 0.5;
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.5);
 }
 
 #xpTotal {
