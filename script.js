@@ -27,6 +27,7 @@ const nonRecyclableMaterials = new Set([
 let items = {};     // { itemName: { xp, materials:{} } }
 let recipes = {};   // { itemName: [ { component, qty } ] }
 let costMap = {};
+let craftQueue = [];
 
 // ===============================
 // 🚀 INIT
@@ -264,61 +265,60 @@ function getCraftCost(materials) {
 // ===============================
 // 🧾 CRAFTING QUEUE
 // ===============================
-function addCraftRow(item = "", qty = 1) {
-  const container = document.getElementById("craftQueue");
+function addSelectedItemToQueue() {
+  const item = document.getElementById("itemSelect").value;
+  const qty = Math.max(1, Number(document.getElementById("quantity").value) || 1);
 
-  const row = document.createElement("div");
-  row.className = "row-input";
+  const existing = craftQueue.find(entry => entry.item === item);
 
-  row.innerHTML = `
-    <select class="queue-item"></select>
-    <input type="number" class="queue-qty" value="${qty}" min="1">
-    <button onclick="this.parentElement.remove()">❌</button>
-  `;
+  if (existing) {
+    existing.qty += qty;
+  } else {
+    craftQueue.push({ item, qty });
+  }
 
-  container.appendChild(row);
-
-  populateRowDropdown(row.querySelector(".queue-item"), item);
+  renderCraftQueue();
+  calculateQueue();
 }
 
-function populateRowDropdown(select, selected = "") {
-  Object.keys(items).forEach(item => {
-    const opt = document.createElement("option");
-    opt.value = item;
-    opt.textContent = item;
-    if (item === selected) opt.selected = true;
-    select.appendChild(opt);
+function removeFromQueue(index) {
+  craftQueue.splice(index, 1);
+  renderCraftQueue();
+  calculateQueue();
+}
+
+function renderCraftQueue() {
+  const container = document.getElementById("craftQueue");
+  container.innerHTML = "";
+
+  if (craftQueue.length === 0) {
+    container.innerHTML = `<div class="muted">No items added yet.</div>`;
+    return;
+  }
+
+  craftQueue.forEach((entry, index) => {
+    const row = document.createElement("div");
+    row.className = "queue-row";
+
+    row.innerHTML = `
+      <span>${entry.item}</span>
+      <strong>x${entry.qty}</strong>
+      <button onclick="removeFromQueue(${index})">Remove</button>
+    `;
+
+    container.appendChild(row);
   });
 }
 
 function calculateQueue() {
-  const rows = document.querySelectorAll("#craftQueue .row-input");
-
   let totalMaterials = {};
   let totalComponents = {};
   let totalXP = 0;
 
-  const queueBreakdown = [];
-
-  rows.forEach(row => {
-    const item = row.querySelector(".queue-item").value;
-    const qty = Number(row.querySelector(".queue-qty").value) || 1;
-
-    const components = getComponents(item, qty);
-    const materials = getMaterials(item, qty);
-    const xp = getXP(item, qty);
-    const recyclable = getRecyclableTotal(materials);
-    const cost = getCraftCost(materials);
-
-    queueBreakdown.push({
-      item,
-      qty,
-      components,
-      materials,
-      xp,
-      recyclable,
-      cost
-    });
+  craftQueue.forEach(entry => {
+    const components = getComponents(entry.item, entry.qty);
+    const materials = getMaterials(entry.item, entry.qty);
+    const xp = getXP(entry.item, entry.qty);
 
     Object.entries(components).forEach(([name, amount]) => {
       totalComponents[name] = (totalComponents[name] || 0) + amount;
@@ -330,8 +330,6 @@ function calculateQueue() {
 
     totalXP += xp;
   });
-
-  renderPerItemBreakdown(queueBreakdown);
 
   const recyclable = getRecyclableTotal(totalMaterials);
   const cost = getCraftCost(totalMaterials);
