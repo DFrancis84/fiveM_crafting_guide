@@ -261,6 +261,93 @@ function getCraftCost(materials) {
 
   return totalCost;
 }
+// ===============================
+// 🧾 CRAFTING QUEUE
+// ===============================
+function addCraftRow(item = "", qty = 1) {
+  const container = document.getElementById("craftQueue");
+
+  const row = document.createElement("div");
+  row.className = "row-input";
+
+  row.innerHTML = `
+    <select class="queue-item"></select>
+    <input type="number" class="queue-qty" value="${qty}" min="1">
+    <button onclick="this.parentElement.remove()">❌</button>
+  `;
+
+  container.appendChild(row);
+
+  populateRowDropdown(row.querySelector(".queue-item"), item);
+}
+
+function populateRowDropdown(select, selected = "") {
+  Object.keys(items).forEach(item => {
+    const opt = document.createElement("option");
+    opt.value = item;
+    opt.textContent = item;
+    if (item === selected) opt.selected = true;
+    select.appendChild(opt);
+  });
+}
+
+function calculateQueue() {
+  const rows = document.querySelectorAll("#craftQueue .row-input");
+
+  let totalMaterials = {};
+  let totalComponents = {};
+  let totalXP = 0;
+
+  const queueBreakdown = [];
+
+  rows.forEach(row => {
+    const item = row.querySelector(".queue-item").value;
+    const qty = Number(row.querySelector(".queue-qty").value) || 1;
+
+    const components = getComponents(item, qty);
+    const materials = getMaterials(item, qty);
+    const xp = getXP(item, qty);
+    const recyclable = getRecyclableTotal(materials);
+    const cost = getCraftCost(materials);
+
+    queueBreakdown.push({
+      item,
+      qty,
+      components,
+      materials,
+      xp,
+      recyclable,
+      cost
+    });
+
+    Object.entries(components).forEach(([name, amount]) => {
+      totalComponents[name] = (totalComponents[name] || 0) + amount;
+    });
+
+    Object.entries(materials).forEach(([name, amount]) => {
+      totalMaterials[name] = (totalMaterials[name] || 0) + amount;
+    });
+
+    totalXP += xp;
+  });
+
+  renderPerItemBreakdown(queueBreakdown);
+
+  const recyclable = getRecyclableTotal(totalMaterials);
+  const cost = getCraftCost(totalMaterials);
+
+  renderList("components", totalComponents);
+  renderList("materials", totalMaterials);
+
+  document.getElementById("xpTotal").textContent =
+    `⭐ XP Gained: ${totalXP.toLocaleString()}`;
+
+  document.getElementById("recyclableTotal").textContent =
+    `♻️ Recyclable Materials Needed: ${recyclable.toLocaleString()}`;
+
+  document.getElementById("costTotal").textContent =
+    `💰 Cost To Make: ${cost.toLocaleString()}`;
+}
 
 // ===============================
 // 🎯 MAIN CALCULATE
@@ -422,4 +509,40 @@ function renderList(id, data) {
       row.innerHTML = `<span>${name}</span><span>${qty}</span>`;
       el.appendChild(row);
     });
+}
+
+function renderPerItemBreakdown(queueItems) {
+  const container = document.getElementById("perItemBreakdown");
+  container.innerHTML = "";
+
+  queueItems.forEach(entry => {
+    const card = document.createElement("div");
+    card.className = "breakdown-card";
+
+    const materialsHtml = Object.entries(entry.materials)
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, qty]) => `<div class="row"><span>${name}</span><span>${qty.toLocaleString()}</span></div>`)
+      .join("");
+
+    const componentsHtml = Object.entries(entry.components)
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, qty]) => `<div class="row"><span>${name}</span><span>${qty.toLocaleString()}</span></div>`)
+      .join("");
+
+    card.innerHTML = `
+      <h3>${entry.item} x${entry.qty}</h3>
+
+      <h4>🧩 Components</h4>
+      ${componentsHtml || `<div class="muted">No components required</div>`}
+
+      <h4>📦 Materials</h4>
+      ${materialsHtml || `<div class="muted">No materials required</div>`}
+
+      <div class="summary-line">⭐ XP: ${entry.xp.toLocaleString()}</div>
+      <div class="summary-line">♻️ Recyclables: ${entry.recyclable.toLocaleString()}</div>
+      <div class="summary-line">💰 Cost: ${entry.cost.toLocaleString()}</div>
+    `;
+
+    container.appendChild(card);
+  });
 }
