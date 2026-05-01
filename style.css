@@ -177,6 +177,17 @@ button:active {
   font-weight: 700;
 }
 
+.section-divider {
+  height: 1px;
+  margin: 12px 0 10px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    #334155,
+    transparent
+  );
+}
+
 #xpTotal {
   color: #22c55e;
 }
