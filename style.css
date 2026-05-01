@@ -58,6 +58,36 @@ h1 {
   border-bottom: 1px solid #334155;
 }
 
+/* ===== BREAKDOWN ===== */
+.breakdown-card {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.breakdown-card h3 {
+  margin-top: 0;
+  color: #38bdf8;
+}
+
+.breakdown-card h4 {
+  margin-bottom: 6px;
+  color: #e5e7eb;
+}
+
+.summary-line {
+  margin-top: 6px;
+  font-weight: bold;
+  color: #facc15;
+}
+
+.muted {
+  color: #94a3b8;
+  font-size: 14px;
+}
+
 /* ===== POPUP ===== */
 #popup {
   position: fixed;
