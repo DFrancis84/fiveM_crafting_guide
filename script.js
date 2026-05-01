@@ -60,6 +60,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     addEditorRow("materialsList");
   });
 
+  document.getElementById("saveCostBtn").addEventListener("click", submitCostUpdate);
   document.getElementById("submitEditorBtn").addEventListener("click", submitItem);
   document.getElementById("closeEditorBtn").addEventListener("click", closeAddItem);
 
@@ -323,6 +324,7 @@ function renderList(id, data) {
 function openAddItem() {
   document.getElementById("popup").style.display = "flex";
   populateEditItemSelect();
+  populateCostEditor();
   resetEditor();
 }
 
@@ -451,4 +453,64 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
+}
+
+function populateCostEditor() {
+  const select = document.getElementById("costMaterialSelect");
+  select.innerHTML = "";
+
+  Object.keys(costMap)
+    .sort()
+    .forEach(material => {
+      const opt = document.createElement("option");
+      opt.value = material;
+      opt.textContent = material;
+      select.appendChild(opt);
+    });
+
+  if (select.options.length > 0) {
+    select.selectedIndex = 0;
+    document.getElementById("costPerInput").value =
+      costMap[select.value] || 0;
+  }
+
+  select.onchange = () => {
+    document.getElementById("costPerInput").value =
+      costMap[select.value] || 0;
+  };
+}
+
+async function submitCostUpdate() {
+  const payload = {
+    action: "updateCost",
+    material: document.getElementById("costMaterialSelect").value,
+    costPer: Number(document.getElementById("costPerInput").value) || 0,
+    code: document.getElementById("authCode").value.trim()
+  };
+
+  const res = await fetch(SAVE_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const result = await res.json();
+
+  if (!result.ok) {
+    alert(`❌ ${result.error || "Cost update failed"}`);
+    return;
+  }
+
+  alert("✅ Cost updated");
+
+  await loadData();
+  populateCostEditor();
+
+  if (viewMode === "single") {
+    calculateSingle();
+  } else {
+    calculateQueue();
+  }
 }
