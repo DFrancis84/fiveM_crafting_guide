@@ -59,33 +59,29 @@ h1 {
 }
 
 /* ===== BREAKDOWN ===== */
-.breakdown-card {
+.queue-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 10px;
+  align-items: center;
   background: #0f172a;
   border: 1px solid #334155;
-  border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 12px;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 8px;
 }
 
-.breakdown-card h3 {
-  margin-top: 0;
-  color: #38bdf8;
-}
-
-.breakdown-card h4 {
-  margin-bottom: 6px;
-  color: #e5e7eb;
-}
-
-.summary-line {
-  margin-top: 6px;
-  font-weight: bold;
-  color: #facc15;
+.queue-row button {
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
 }
 
 .muted {
   color: #94a3b8;
-  font-size: 14px;
 }
 
 /* ===== POPUP ===== */
