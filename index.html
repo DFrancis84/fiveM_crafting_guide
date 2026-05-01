@@ -64,29 +64,32 @@
   ========================== -->
 <div id="popup" style="display:none;">
   <div class="modal">
-
     <h3>🛠 Crafting Editor</h3>
 
-    <!-- ITEM NAME -->
-    <input id="newItem" placeholder="Item Name (e.g. Tech9)">
+    <label>Edit Existing Item</label>
+    <select id="editItemSelect">
+      <option value="">New Item</option>
+    </select>
 
-    <!-- COMPONENTS -->
+    <label>Item Name</label>
+    <input id="newItem" placeholder="Item Name">
+
+    <label>XP Per Craft</label>
+    <input id="newXP" type="number" placeholder="XP">
+
     <h4>🧩 Components</h4>
     <div id="componentsList"></div>
-    <button onclick="addRow('componentsList')">➕ Add Component</button>
+    <button type="button" onclick="addEditorRow('componentsList')">➕ Add Component</button>
 
-    <!-- MATERIALS -->
     <h4>📦 Materials</h4>
     <div id="materialsList"></div>
-    <button onclick="addRow('materialsList')">➕ Add Material</button>
+    <button type="button" onclick="addEditorRow('materialsList')">➕ Add Material</button>
 
-    <!-- AUTH -->
-    <input id="authCode" placeholder="Authenticator Code" maxlength="6">
+    <label>Authenticator Code</label>
+    <input id="authCode" maxlength="6" inputmode="numeric" placeholder="6-digit code">
 
-    <!-- ACTIONS -->
-    <button onclick="submitItem()">💾 Save</button>
-    <button onclick="closeAddItem()">Cancel</button>
-
+    <button type="button" onclick="submitItem()">💾 Save Item</button>
+    <button type="button" onclick="closeAddItem()">Cancel</button>
   </div>
 </div>
 
