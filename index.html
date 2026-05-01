@@ -22,11 +22,8 @@
 
       <div class="controls">
         <select id="itemSelect"></select>
-
         <input id="quantity" type="number" value="1" min="1" />
-
         <button id="addQueueBtn">➕ Add Item</button>
-
         <button id="openEditorBtn">⚙️ Add / Update</button>
       </div>
     </section>
@@ -45,28 +42,27 @@
       <button id="queueViewBtn">Craft Queue</button>
     </div>
 
-    <!-- XP TOGGLE (PRETTY SWITCH) -->
+    <!-- XP TOGGLE -->
     <label class="xp-toggle">
       <span>Include Component XP</span>
-
-      <div class="switch">
+      <span class="switch">
         <input id="includeComponentXP" type="checkbox" checked>
         <span class="slider"></span>
-      </div>
+      </span>
     </label>
+
+    <!-- ===============================
+         ✅ SUMMARY MOVED HERE
+    =============================== -->
+    <div class="summary-box summary-top">
+      <div id="xpTotal">⭐ XP Gained: 0</div>
+      <div id="recyclableTotal">♻️ Recyclable Materials Needed: 0</div>
+      <div id="costTotal">💰 Cost To Make: 0</div>
+    </div>
 
     <!-- OUTPUT -->
     <section class="output-grid">
 
-      <!-- DETAILS -->
-      <div class="summary-box summary-top">
-        <div id="xpTotal">⭐ XP Gained: 0</div>
-        <div id="recyclableTotal">♻️ Recyclable Materials Needed: 0</div>
-        <div id="costTotal">💰 Cost To Make: 0</div>
-      </div>
-
-      <section class="output-grid">
-        
       <!-- COMPONENTS -->
       <div class="panel">
         <h2>🧩 Components Required</h2>
@@ -91,49 +87,38 @@
 
       <h3>🛠 Crafting Editor</h3>
 
-      <!-- EXISTING ITEM -->
       <label>Edit Existing Item</label>
       <select id="editItemSelect">
         <option value="">New Item</option>
       </select>
 
-      <!-- ITEM NAME -->
       <label>Item Name</label>
       <input id="newItem" placeholder="Item Name" />
 
-      <!-- XP -->
       <label>XP Per Craft</label>
       <input id="newXP" type="number" placeholder="XP" />
 
-      <!-- COMPONENTS -->
       <h4>🧩 Components</h4>
       <div id="componentsList"></div>
       <button type="button" class="secondary-btn" id="addComponentRowBtn">
         ➕ Add Component
       </button>
 
-      <!-- MATERIALS -->
       <h4>📦 Materials</h4>
       <div id="materialsList"></div>
       <button type="button" class="secondary-btn" id="addMaterialRowBtn">
         ➕ Add Material
       </button>
 
-      <!-- AUTH -->
       <label>Authenticator Code</label>
       <input id="authCode" maxlength="6" placeholder="6-digit code" />
 
-      <!-- ACTIONS -->
       <div class="modal-actions">
         <button id="submitEditorBtn">💾 Save Item</button>
         <button class="danger-btn" id="closeEditorBtn">Cancel</button>
       </div>
 
       <hr class="modal-divider">
-
-      <!-- ===============================
-           💰 COST EDITOR
-      =============================== -->
 
       <h3>💰 Cost Editor</h3>
 
