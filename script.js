@@ -48,7 +48,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.getElementById("addQueueBtn").addEventListener("click", addSelectedItemToQueue);
   document.getElementById("openEditorBtn").addEventListener("click", openAddItem);
-
+  
+  document.getElementById("includeComponentXP").addEventListener("change", () => {
+    if (viewMode === "single") {
+      calculateSingle();
+    } else {
+      calculateQueue();
+    }
+  });
+  
   document.getElementById("singleViewBtn").addEventListener("click", () => setViewMode("single"));
   document.getElementById("queueViewBtn").addEventListener("click", () => setViewMode("queue"));
 
@@ -169,12 +177,13 @@ function renderCraftQueue() {
 function calculateSingle() {
   const item = document.getElementById("itemSelect").value;
   const qty = Math.max(1, Number(document.getElementById("quantity").value) || 1);
+  const includeComponentXP = document.getElementById("includeComponentXP").checked;
 
   if (!item) return;
 
   const components = getComponents(item, qty);
   const materials = getMaterials(item, qty);
-  const xp = getXP(item, qty);
+  const xp = getXP(item, qty, includeComponentXP);
   const recyclable = getRecyclableTotal(materials);
   const cost = getCraftCost(materials);
 
@@ -186,10 +195,11 @@ function calculateQueue() {
   let totalMaterials = {};
   let totalXP = 0;
 
+  const includeComponentXP = document.getElementById("includeComponentXP").checked;
   craftQueue.forEach(entry => {
     const components = getComponents(entry.item, entry.qty);
     const materials = getMaterials(entry.item, entry.qty);
-    const xp = getXP(entry.item, entry.qty);
+    const xp = getXP(entry.item, entry.qty, includeComponentXP);
 
     mergeTotals(totalComponents, components);
     mergeTotals(totalMaterials, materials);
@@ -240,13 +250,17 @@ function getMaterials(item, qty, result = {}) {
   return result;
 }
 
-function getXP(item, qty) {
+function getXP(item, qty, includeComponents = true) {
   let total = (items[item]?.xp || 0) * qty;
+
+  if (!includeComponents) {
+    return total;
+  }
 
   const comps = recipes[item];
   if (comps) {
     comps.forEach(c => {
-      total += getXP(c.component, c.qty * qty);
+      total += getXP(c.component, c.qty * qty, true);
     });
   }
 
