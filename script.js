@@ -32,6 +32,8 @@ let viewMode = "single";
 // INIT
 // ===============================
 document.addEventListener("DOMContentLoaded", async () => {
+  document.getElementById("popup").style.display = "none";
+  
   await loadData();
   initDropdown();
   renderCraftQueue();
