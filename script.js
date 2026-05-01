@@ -30,7 +30,24 @@ let recipes = {};   // { itemName: [ { component, qty } ] }
 // ===============================
 // 🚀 INIT
 // ===============================
-window.onload = async () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadData();
+  initDropdown();
+
+  const itemSelect = document.getElementById("itemSelect");
+  const quantityInput = document.getElementById("quantity");
+
+  if (itemSelect.options.length > 0) {
+    itemSelect.selectedIndex = 0;
+  }
+
+  itemSelect.addEventListener("change", calculate);
+  quantityInput.addEventListener("input", calculate);
+
+  calculate();
+});
+/**
+  window.onload = async () => {
   await loadData();
   initDropdown();
 
@@ -48,6 +65,7 @@ window.onload = async () => {
   itemSelect.addEventListener("change", calculate);
   quantityInput.addEventListener("input", calculate);
 };
+*/
 // ===============================
 // 📥 LOAD DATA (HEADER-BASED)
 // ===============================
