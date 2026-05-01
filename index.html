@@ -1,116 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Crafting Console</title>
-
-  <link rel="stylesheet" href="style.css">
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
+  <main class="app">
+    <header class="header">
+      <h1>🛠 Crafting Console</h1>
+      <p>Plan crafts, calculate materials, XP, recyclables, and cost.</p>
+    </header>
 
-  <div class="container">
-
-    <!-- HEADER -->
-    <h1>🛠 Crafting Console</h1>
-
-    <!-- MAIN CONTROLS -->
-    <div class="controls">
+    <section class="panel">
+      <h2>🎯 Craft Selector</h2>
 
       <div class="controls">
         <select id="itemSelect"></select>
-        <input id="quantity" type="number" value="1" min="1">
-        <button onClick="addSelectedItemToQueue()">➕ Add Item</button>    
+        <input id="quantity" type="number" value="1" min="1" />
+        <button id="addQueueBtn" type="button">➕ Add Item</button>
+        <button id="openEditorBtn" type="button">⚙️ Add / Update</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>🧾 Crafting Queue</h2>
+      <div id="craftQueue" class="queue-list">
+        <div class="muted">No items added yet.</div>
+      </div>
+    </section>
+
+    <div class="view-toggle">
+      <button id="singleViewBtn" type="button">Selected Item</button>
+      <button id="queueViewBtn" type="button">Craft Queue</button>
+    </div>
+
+    <section class="output-grid">
+      <div class="panel">
+        <h2>🧩 Components Required</h2>
+        <div id="components"></div>
       </div>
 
       <div class="panel">
-        <h2>🧾 Craft Queue</h2>
-        <div id="craftQueue"></div>
+        <h2>📦 Total Materials</h2>
+        <div id="materials"></div>
+
+        <div class="summary-box">
+          <div id="xpTotal">⭐ XP Gained: 0</div>
+          <div id="recyclableTotal">♻️ Recyclable Materials Needed: 0</div>
+          <div id="costTotal">💰 Cost To Make: 0</div>
+        </div>
       </div>
-      
-      <!--
-      <select id="itemSelect"></select>
+    </section>
+  </main>
 
-      <input
-        id="quantity"
-        type="number"
-        value="1"
-        min="1"
-      >
-      -->
+  <!-- Admin Modal -->
+  <div id="popup" class="modal-backdrop">
+    <div class="modal">
+      <h3>🛠 Crafting Editor</h3>
 
-      <!-- NEW: ADMIN BUTTON -->
-      <button onclick="openAddItem()">➕ Add / Update Item</button>
+      <label>Edit Existing Item</label>
+      <select id="editItemSelect">
+        <option value="">New Item</option>
+      </select>
 
+      <label>Item Name</label>
+      <input id="newItem" placeholder="Item Name" />
+
+      <label>XP Per Craft</label>
+      <input id="newXP" type="number" placeholder="XP" />
+
+      <h4>🧩 Components</h4>
+      <div id="componentsList"></div>
+      <button type="button" class="secondary-btn" id="addComponentRowBtn">
+        ➕ Add Component
+      </button>
+
+      <h4>📦 Materials</h4>
+      <div id="materialsList"></div>
+      <button type="button" class="secondary-btn" id="addMaterialRowBtn">
+        ➕ Add Material
+      </button>
+
+      <label>Authenticator Code</label>
+      <input id="authCode" maxlength="6" inputmode="numeric" placeholder="6-digit code" />
+
+      <div class="modal-actions">
+        <button type="button" id="submitEditorBtn">💾 Save Item</button>
+        <button type="button" class="danger-btn" id="closeEditorBtn">Cancel</button>
+      </div>
     </div>
-    
-    <!-- COMPONENTS -->
-    <div class="panel">
-      <h2>🧩 Components Required</h2>
-      <div id="components"></div>
-    </div>
-
-    <!-- MATERIALS -->
-    <div class="panel">
-      <h2>📦 Total Materials</h2>
-      <div id="materials"></div>
-
-      <!-- ♻️ RECYCLABLE TOTAL -->
-      <div style="margin-top: 12px; font-weight: bold; color: #38bdf8;">
-        <span id="recyclableTotal">
-          ♻️ Recyclable Materials Needed: 0
-        </span>
-      </div>
-      <div id="costTotal" style="margin-top:10px; font-weight:bold; color:#facc15;">
-          💰 Cost To Make: 0
-      </div>
-      <div style="margin-top: 10px; font-weight: bold; color: #22c55e;">
-        <span id="xpTotal">
-          ⭐ XP Gained: 0
-        </span>
-      </div>
-    </div>
-
   </div>
 
-  <!-- =========================
-       POPUP: ADD / UPDATE FORM
-  ========================== -->
-<div id="popup" style="display:none;">
-  <div class="modal">
-    <h3>🛠 Crafting Editor</h3>
-
-    <label>Edit Existing Item</label>
-    <select id="editItemSelect">
-      <option value="">New Item</option>
-    </select>
-
-    <label>Item Name</label>
-    <input id="newItem" placeholder="Item Name">
-
-    <label>XP Per Craft</label>
-    <input id="newXP" type="number" placeholder="XP">
-
-    <h4>🧩 Components</h4>
-    <div id="componentsList"></div>
-    <button type="button" onclick="addEditorRow('componentsList')">➕ Add Component</button>
-
-    <h4>📦 Materials</h4>
-    <div id="materialsList"></div>
-    <button type="button" onclick="addEditorRow('materialsList')">➕ Add Material</button>
-
-    <label>Authenticator Code</label>
-    <input id="authCode" maxlength="6" inputmode="numeric" placeholder="6-digit code">
-
-    <button type="button" onclick="submitItem()">💾 Save Item</button>
-    <button type="button" onclick="closeAddItem()">Cancel</button>
-  </div>
-</div>
-
-  <!-- SCRIPT -->
   <script src="script.js"></script>
-
 </body>
 </html>
