@@ -33,8 +33,21 @@ let recipes = {};   // { itemName: [ { component, qty } ] }
 window.onload = async () => {
   await loadData();
   initDropdown();
-};
 
+  const itemSelect = document.getElementById("itemSelect");
+  const quantityInput = document.getElementById("quantity");
+
+  if (itemSelect.options.length > 0) {
+    itemSelect.selectedIndex = 0;
+  }
+
+  // Auto-calculate on load
+  calculate();
+
+  // Auto-calculate when changed
+  itemSelect.addEventListener("change", calculate);
+  quantityInput.addEventListener("input", calculate);
+};
 // ===============================
 // 📥 LOAD DATA (HEADER-BASED)
 // ===============================
@@ -204,7 +217,7 @@ function getRecyclableTotal(materials) {
 // ===============================
 function calculate() {
   const item = document.getElementById("itemSelect").value;
-  const qty = Number(document.getElementById("quantity").value);
+  const qty = Math.max(1, Number(document.getElementById("quantity").value) || 1);
 
   const components = getComponents(item, qty);
   const materials = getMaterials(item, qty);
@@ -214,9 +227,7 @@ function calculate() {
   renderList("components", components);
   renderList("materials", materials);
 
-  document.getElementById("xpTotal").textContent =
-    `⭐ XP Gained: ${xp}`;
-
+  document.getElementById("xpTotal").textContent = `⭐ XP Gained: ${xp}`;
   document.getElementById("recyclableTotal").textContent =
     `♻️ Recyclable Materials Needed: ${recyclable}`;
 }
