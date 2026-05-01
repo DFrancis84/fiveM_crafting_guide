@@ -1,14 +1,12 @@
 // ===============================
-// 🌐 CONFIG
+// CONFIG
 // ===============================
 
-// 👉 Replace with your published Google Sheets JSON endpoints
-const SHEET_ID = "1-VghUNT10zMsQoYNkADkZDu2yyW4Al0ealROIu6A2Zc"
+// Replace these with your Cloudflare Worker endpoints.
+const DATA_ENDPOINT = "https://lucidcrafting.devinfrancis84.workers.dev/api/data";
+const SAVE_ENDPOINT = "https://lucidcrafting.devinfrancis84.workers.dev";
 
-const ITEMS_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Items`;
-const RECIPES_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Recipes`;
-
-// materials you DO NOT want counted as recyclable
+// Materials excluded from recyclable total.
 const nonRecyclableMaterials = new Set([
   "Titanium",
   "Circuit Board",
@@ -22,138 +20,74 @@ const nonRecyclableMaterials = new Set([
   ]);
 
 // ===============================
-// 📦 GLOBAL DATA
+// GLOBAL STATE
 // ===============================
-let items = {};     // { itemName: { xp, materials:{} } }
-let recipes = {};   // { itemName: [ { component, qty } ] }
+let items = {};
+let recipes = {};
 let costMap = {};
 let craftQueue = [];
+let viewMode = "single";
 
 // ===============================
-// 🚀 INIT
+// INIT
 // ===============================
 document.addEventListener("DOMContentLoaded", async () => {
   await loadData();
   initDropdown();
+  renderCraftQueue();
 
-  const itemSelect = document.getElementById("itemSelect");
-  const quantityInput = document.getElementById("quantity");
+  document.getElementById("itemSelect").addEventListener("change", () => {
+    if (viewMode === "single") calculateSingle();
+  });
 
-  if (itemSelect.options.length > 0) {
-    itemSelect.selectedIndex = 0;
-  }
+  document.getElementById("quantity").addEventListener("input", () => {
+    if (viewMode === "single") calculateSingle();
+  });
 
-  itemSelect.addEventListener("change", calculate);
-  quantityInput.addEventListener("input", calculate);
+  document.getElementById("addQueueBtn").addEventListener("click", addSelectedItemToQueue);
+  document.getElementById("openEditorBtn").addEventListener("click", openAddItem);
 
-  calculate();
+  document.getElementById("singleViewBtn").addEventListener("click", () => setViewMode("single"));
+  document.getElementById("queueViewBtn").addEventListener("click", () => setViewMode("queue"));
+
+  document.getElementById("addComponentRowBtn").addEventListener("click", () => {
+    addEditorRow("componentsList");
+  });
+
+  document.getElementById("addMaterialRowBtn").addEventListener("click", () => {
+    addEditorRow("materialsList");
+  });
+
+  document.getElementById("submitEditorBtn").addEventListener("click", submitItem);
+  document.getElementById("closeEditorBtn").addEventListener("click", closeAddItem);
+
+  setViewMode("single");
 });
-/**
-  window.onload = async () => {
-  await loadData();
-  initDropdown();
 
-  const itemSelect = document.getElementById("itemSelect");
-  const quantityInput = document.getElementById("quantity");
-
-  if (itemSelect.options.length > 0) {
-    itemSelect.selectedIndex = 0;
-  }
-
-  // Auto-calculate on load
-  calculate();
-
-  // Auto-calculate when changed
-  itemSelect.addEventListener("change", calculate);
-  quantityInput.addEventListener("input", calculate);
-};
-*/
 // ===============================
-// 📥 LOAD DATA (HEADER-BASED)
+// DATA LOADING
 // ===============================
 async function loadData() {
-  const res = await fetch("https://lucidcrafting.devinfrancis84.workers.dev/api/data");
+  const res = await fetch(DATA_ENDPOINT);
   const data = await res.json();
 
-  items = data.items;
-  recipes = data.recipes;
-  costMap = data.costs;
+  items = data.items || {};
+  recipes = data.recipes || {};
+  costMap = data.costs || {};
 }
 
-// ===============================
-// 🧠 PARSE ITEMS TAB
-// ===============================
-function parseItems(data) {
-  const headers = data[0];
-
-  const itemIndex = headers.indexOf("Item Name");
-  const xpIndex = headers.indexOf("XP");
-
-  for (let i = 1; i < data.length; i++) {
-    const row = data[i];
-    const itemName = row[itemIndex];
-
-    if (!itemName) continue;
-
-    const xp = Number(row[xpIndex]) || 0;
-    const materials = {};
-
-    headers.forEach((header, idx) => {
-      if (idx === itemIndex || idx === xpIndex) return;
-
-      const val = Number(row[idx]) || 0;
-      if (val > 0) {
-        materials[header] = val;
-      }
-    });
-
-    items[itemName] = {
-      xp,
-      materials
-    };
-  }
-}
-
-// ===============================
-// 🧩 PARSE RECIPES TAB
-// ===============================
-function parseRecipes(data) {
-  const headers = data[0];
-
-  const itemIndex = headers.indexOf("Item Name");
-  const compIndex = headers.indexOf("Component");
-  const qtyIndex = headers.indexOf("Qty");
-
-  for (let i = 1; i < data.length; i++) {
-    const row = data[i];
-
-    const item = row[itemIndex];
-    const component = row[compIndex];
-    const qty = Number(row[qtyIndex]) || 0;
-
-    if (!item || !component || !qty) continue;
-
-    if (!recipes[item]) {
-      recipes[item] = [];
-    }
-
-    recipes[item].push({ component, qty });
-  }
-}
-
-// ===============================
-// 🎯 DROPDOWN INIT
-// ===============================
 function initDropdown() {
   const select = document.getElementById("itemSelect");
   select.innerHTML = "";
 
-  Object.keys(items).forEach(item => {
-    const opt = document.createElement("option");
-    opt.value = item;
-    opt.textContent = item;
-    select.appendChild(opt);
-  });
+  Object.keys(items)
+    .sort()
+    .forEach(item => {
+      const opt = document.createElement("option");
+      opt.value = item;
+      opt.textContent = item;
+      select.appendChild(opt);
+    });
 
   if (select.options.length > 0) {
     select.selectedIndex = 0;
@@ -161,113 +95,29 @@ function initDropdown() {
 }
 
 // ===============================
-// 🧩 COMPONENT RESOLUTION
+// VIEW MODE
 // ===============================
-function getComponents(item, qty, result = {}) {
-  const comps = recipes[item];
-  if (!comps) return result;
+function setViewMode(mode) {
+  viewMode = mode;
 
-  comps.forEach(c => {
-    const total = c.qty * qty;
+  document.getElementById("singleViewBtn").classList.toggle("active", mode === "single");
+  document.getElementById("queueViewBtn").classList.toggle("active", mode === "queue");
 
-    result[c.component] = (result[c.component] || 0) + total;
-
-    // recurse deeper
-    getComponents(c.component, total, result);
-  });
-
-  return result;
-}
-
-// ===============================
-// 📦 MATERIAL CALCULATION
-// ===============================
-function getMaterials(item, qty, result = {}) {
-  const itemData = items[item];
-  if (!itemData) return result;
-
-  // direct materials
-  Object.entries(itemData.materials).forEach(([mat, val]) => {
-    result[mat] = (result[mat] || 0) + val * qty;
-  });
-
-  // recurse components
-  const comps = recipes[item];
-  if (comps) {
-    comps.forEach(c => {
-      getMaterials(c.component, c.qty * qty, result);
-    });
+  if (mode === "single") {
+    calculateSingle();
+  } else {
+    calculateQueue();
   }
-
-  return result;
 }
 
 // ===============================
-// ⭐ XP CALCULATION
-// ===============================
-function getXP(item, qty) {
-  let total = (items[item]?.xp || 0) * qty;
-
-  const comps = recipes[item];
-  if (comps) {
-    comps.forEach(c => {
-      total += getXP(c.component, c.qty * qty);
-    });
-  }
-
-  return total;
-}
-
-// ===============================
-// ♻️ RECYCLABLE CALCULATION
-// ===============================
-function getRecyclableTotal(materials) {
-  let total = 0;
-
-  Object.entries(materials).forEach(([mat, qty]) => {
-    if (!nonRecyclableMaterials.has(mat)) {
-      total += qty;
-    }
-  });
-
-  return total;
-}
-
-// ===============================
-// 💲 CRAFTING COST CALCULATION
-// =============================== 
-function getCraftCost(materials) {
-  let totalCost = 0;
-
-  let recyclableTotal = 0;
-
-  Object.entries(materials).forEach(([mat, qty]) => {
-    if (mat === "Titanium" ||
-        mat === "Circuit Board" ||
-        mat === "Control Chip" ||
-        mat === "Power Supply") {
-
-      const costPer = costMap[mat] || 0;
-      totalCost += qty * costPer;
-
-    } else {
-      // everything else = recyclable
-      recyclableTotal += qty;
-    }
-  });
-
-  // apply recyclable cost
-  const recyclableCost = costMap["Recyclable Materials"] || 0;
-  totalCost += recyclableTotal * recyclableCost;
-
-  return totalCost;
-}
-// ===============================
-// 🧾 CRAFTING QUEUE
+// QUEUE
 // ===============================
 function addSelectedItemToQueue() {
   const item = document.getElementById("itemSelect").value;
   const qty = Math.max(1, Number(document.getElementById("quantity").value) || 1);
+
+  if (!item) return;
 
   const existing = craftQueue.find(entry => entry.item === item);
 
@@ -278,7 +128,7 @@ function addSelectedItemToQueue() {
   }
 
   renderCraftQueue();
-  calculateQueue();
+  setViewMode("queue");
 }
 
 function removeFromQueue(index) {
@@ -301,18 +151,36 @@ function renderCraftQueue() {
     row.className = "queue-row";
 
     row.innerHTML = `
-      <span>${entry.item}</span>
-      <strong>x${entry.qty}</strong>
-      <button onclick="removeFromQueue(${index})">Remove</button>
+      <span class="queue-name">${entry.item}</span>
+      <strong>x${entry.qty.toLocaleString()}</strong>
+      <button type="button" onclick="removeFromQueue(${index})">Remove</button>
     `;
 
     container.appendChild(row);
   });
 }
 
+// ===============================
+// CALCULATIONS
+// ===============================
+function calculateSingle() {
+  const item = document.getElementById("itemSelect").value;
+  const qty = Math.max(1, Number(document.getElementById("quantity").value) || 1);
+
+  if (!item) return;
+
+  const components = getComponents(item, qty);
+  const materials = getMaterials(item, qty);
+  const xp = getXP(item, qty);
+  const recyclable = getRecyclableTotal(materials);
+  const cost = getCraftCost(materials);
+
+  updateOutput(components, materials, xp, recyclable, cost);
+}
+
 function calculateQueue() {
-  let totalMaterials = {};
   let totalComponents = {};
+  let totalMaterials = {};
   let totalXP = 0;
 
   craftQueue.forEach(entry => {
@@ -320,13 +188,8 @@ function calculateQueue() {
     const materials = getMaterials(entry.item, entry.qty);
     const xp = getXP(entry.item, entry.qty);
 
-    Object.entries(components).forEach(([name, amount]) => {
-      totalComponents[name] = (totalComponents[name] || 0) + amount;
-    });
-
-    Object.entries(materials).forEach(([name, amount]) => {
-      totalMaterials[name] = (totalMaterials[name] || 0) + amount;
-    });
+    mergeTotals(totalComponents, components);
+    mergeTotals(totalMaterials, materials);
 
     totalXP += xp;
   });
@@ -334,11 +197,97 @@ function calculateQueue() {
   const recyclable = getRecyclableTotal(totalMaterials);
   const cost = getCraftCost(totalMaterials);
 
-  renderList("components", totalComponents);
-  renderList("materials", totalMaterials);
+  updateOutput(totalComponents, totalMaterials, totalXP, recyclable, cost);
+}
+
+function mergeTotals(target, source) {
+  Object.entries(source).forEach(([name, qty]) => {
+    target[name] = (target[name] || 0) + qty;
+  });
+}
+
+function getComponents(item, qty, result = {}) {
+  const comps = recipes[item];
+  if (!comps) return result;
+
+  comps.forEach(c => {
+    const total = c.qty * qty;
+    result[c.component] = (result[c.component] || 0) + total;
+    getComponents(c.component, total, result);
+  });
+
+  return result;
+}
+
+function getMaterials(item, qty, result = {}) {
+  const itemData = items[item];
+  if (!itemData) return result;
+
+  Object.entries(itemData.materials || {}).forEach(([mat, val]) => {
+    result[mat] = (result[mat] || 0) + val * qty;
+  });
+
+  const comps = recipes[item];
+  if (comps) {
+    comps.forEach(c => {
+      getMaterials(c.component, c.qty * qty, result);
+    });
+  }
+
+  return result;
+}
+
+function getXP(item, qty) {
+  let total = (items[item]?.xp || 0) * qty;
+
+  const comps = recipes[item];
+  if (comps) {
+    comps.forEach(c => {
+      total += getXP(c.component, c.qty * qty);
+    });
+  }
+
+  return total;
+}
+
+function getRecyclableTotal(materials) {
+  let total = 0;
+
+  Object.entries(materials).forEach(([mat, qty]) => {
+    if (!nonRecyclableMaterials.has(mat)) {
+      total += qty;
+    }
+  });
+
+  return total;
+}
+
+function getCraftCost(materials) {
+  let totalCost = 0;
+  let recyclableTotal = 0;
+
+  Object.entries(materials).forEach(([mat, qty]) => {
+    if (costMap[mat] !== undefined) {
+      totalCost += qty * Number(costMap[mat]);
+    } else if (!nonRecyclableMaterials.has(mat)) {
+      recyclableTotal += qty;
+    }
+  });
+
+  totalCost += recyclableTotal * Number(costMap["Recyclable Materials"] || 0);
+
+  return totalCost;
+}
+
+// ===============================
+// RENDERING
+// ===============================
+function updateOutput(components, materials, xp, recyclable, cost) {
+  renderList("components", components);
+  renderList("materials", materials);
 
   document.getElementById("xpTotal").textContent =
-    `⭐ XP Gained: ${totalXP.toLocaleString()}`;
+    `⭐ XP Gained: ${xp.toLocaleString()}`;
 
   document.getElementById("recyclableTotal").textContent =
     `♻️ Recyclable Materials Needed: ${recyclable.toLocaleString()}`;
@@ -347,31 +296,27 @@ function calculateQueue() {
     `💰 Cost To Make: ${cost.toLocaleString()}`;
 }
 
-// ===============================
-// 🎯 MAIN CALCULATE
-// ===============================
-function calculate() {
-  const item = document.getElementById("itemSelect").value;
-  const qty = Math.max(1, Number(document.getElementById("quantity").value) || 1);
+function renderList(id, data) {
+  const el = document.getElementById(id);
+  el.innerHTML = "";
 
-  const components = getComponents(item, qty);
-  const materials = getMaterials(item, qty);
-  const xp = getXP(item, qty);
-  const recyclable = getRecyclableTotal(materials);
-  const cost = getCraftCost(materials);
+  const entries = Object.entries(data).sort((a, b) => b[1] - a[1]);
 
-  renderList("components", components);
-  renderList("materials", materials);
+  if (entries.length === 0) {
+    el.innerHTML = `<div class="muted">None required.</div>`;
+    return;
+  }
 
-  document.getElementById("xpTotal").textContent = `⭐ XP Gained: ${xp}`;
-  document.getElementById("recyclableTotal").textContent =
-    `♻️ Recyclable Materials Needed: ${recyclable}`;
-  document.getElementById("costTotal").textContent =
-    `💰 Cost To Make: ${cost.toLocaleString()}`;
+  entries.forEach(([name, qty]) => {
+    const row = document.createElement("div");
+    row.className = "result-row";
+    row.innerHTML = `<span>${name}</span><strong>${qty.toLocaleString()}</strong>`;
+    el.appendChild(row);
+  });
 }
 
 // ===============================
-// 🧾 ADD / UPDATE
+// ADD / UPDATE EDITOR
 // ===============================
 function openAddItem() {
   document.getElementById("popup").style.display = "flex";
@@ -387,12 +332,14 @@ function populateEditItemSelect() {
   const select = document.getElementById("editItemSelect");
   select.innerHTML = `<option value="">New Item</option>`;
 
-  Object.keys(items).sort().forEach(item => {
-    const opt = document.createElement("option");
-    opt.value = item;
-    opt.textContent = item;
-    select.appendChild(opt);
-  });
+  Object.keys(items)
+    .sort()
+    .forEach(item => {
+      const opt = document.createElement("option");
+      opt.value = item;
+      opt.textContent = item;
+      select.appendChild(opt);
+    });
 
   select.onchange = () => {
     if (select.value) {
@@ -432,10 +379,10 @@ function addEditorRow(containerId, name = "", qty = "") {
   const container = document.getElementById(containerId);
 
   const row = document.createElement("div");
-  row.className = "row-input";
+  row.className = "editor-row";
 
   row.innerHTML = `
-    <input class="entry-name" placeholder="Name" value="${name}">
+    <input class="entry-name" placeholder="Name" value="${escapeHtml(name)}">
     <input class="entry-qty" type="number" min="0" placeholder="Qty" value="${qty}">
     <button type="button" onclick="this.parentElement.remove()">✖</button>
   `;
@@ -444,13 +391,11 @@ function addEditorRow(containerId, name = "", qty = "") {
 }
 
 function getEditorRows(containerId) {
-  return Array.from(document.querySelectorAll(`#${containerId} .row-input`))
-    .map(row => {
-      return {
-        name: row.querySelector(".entry-name").value.trim(),
-        qty: Number(row.querySelector(".entry-qty").value) || 0
-      };
-    })
+  return Array.from(document.querySelectorAll(`#${containerId} .editor-row`))
+    .map(row => ({
+      name: row.querySelector(".entry-name").value.trim(),
+      qty: Number(row.querySelector(".entry-qty").value) || 0
+    }))
     .filter(row => row.name && row.qty > 0);
 }
 
@@ -468,7 +413,7 @@ async function submitItem() {
     return;
   }
 
-  const res = await fetch(SHEET_ENDPOINT, {
+  const res = await fetch(SAVE_ENDPOINT, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -489,58 +434,19 @@ async function submitItem() {
 
   await loadData();
   initDropdown();
-  calculate();
+  renderCraftQueue();
+
+  if (viewMode === "single") {
+    calculateSingle();
+  } else {
+    calculateQueue();
+  }
 }
 
-// ===============================
-// 🧾 RENDER HELPER
-// ===============================
-function renderList(id, data) {
-  const el = document.getElementById(id);
-  el.innerHTML = "";
-
-  Object.entries(data)
-    .sort((a, b) => b[1] - a[1]) // sort descending
-    .forEach(([name, qty]) => {
-      const row = document.createElement("div");
-      row.className = "row";
-      row.innerHTML = `<span>${name}</span><span>${qty}</span>`;
-      el.appendChild(row);
-    });
-}
-
-function renderPerItemBreakdown(queueItems) {
-  const container = document.getElementById("perItemBreakdown");
-  container.innerHTML = "";
-
-  queueItems.forEach(entry => {
-    const card = document.createElement("div");
-    card.className = "breakdown-card";
-
-    const materialsHtml = Object.entries(entry.materials)
-      .sort((a, b) => b[1] - a[1])
-      .map(([name, qty]) => `<div class="row"><span>${name}</span><span>${qty.toLocaleString()}</span></div>`)
-      .join("");
-
-    const componentsHtml = Object.entries(entry.components)
-      .sort((a, b) => b[1] - a[1])
-      .map(([name, qty]) => `<div class="row"><span>${name}</span><span>${qty.toLocaleString()}</span></div>`)
-      .join("");
-
-    card.innerHTML = `
-      <h3>${entry.item} x${entry.qty}</h3>
-
-      <h4>🧩 Components</h4>
-      ${componentsHtml || `<div class="muted">No components required</div>`}
-
-      <h4>📦 Materials</h4>
-      ${materialsHtml || `<div class="muted">No materials required</div>`}
-
-      <div class="summary-line">⭐ XP: ${entry.xp.toLocaleString()}</div>
-      <div class="summary-line">♻️ Recyclables: ${entry.recyclable.toLocaleString()}</div>
-      <div class="summary-line">💰 Cost: ${entry.cost.toLocaleString()}</div>
-    `;
-
-    container.appendChild(card);
-  });
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
 }
