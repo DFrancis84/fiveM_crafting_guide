@@ -9,22 +9,29 @@
 
 <body>
   <main class="app">
+
+    <!-- HEADER -->
     <header class="header">
       <h1>🛠 Crafting Console</h1>
-      <p>Plan crafts, calculate materials, XP, recyclables, and cost.</p>
+      <p>Plan crafts, materials, XP, and cost</p>
     </header>
 
+    <!-- SELECT ITEM -->
     <section class="panel">
       <h2>🎯 Craft Selector</h2>
 
       <div class="controls">
         <select id="itemSelect"></select>
+
         <input id="quantity" type="number" value="1" min="1" />
-        <button id="addQueueBtn" type="button">➕ Add Item</button>
-        <button id="openEditorBtn" type="button">⚙️ Add / Update</button>
+
+        <button id="addQueueBtn">➕ Add Item</button>
+
+        <button id="openEditorBtn">⚙️ Add / Update</button>
       </div>
     </section>
 
+    <!-- QUEUE -->
     <section class="panel">
       <h2>🧾 Crafting Queue</h2>
       <div id="craftQueue" class="queue-list">
@@ -32,17 +39,22 @@
       </div>
     </section>
 
+    <!-- VIEW TOGGLE -->
     <div class="view-toggle">
-      <button id="singleViewBtn" type="button">Selected Item</button>
-      <button id="queueViewBtn" type="button">Craft Queue</button>
+      <button id="singleViewBtn">Selected Item</button>
+      <button id="queueViewBtn">Craft Queue</button>
     </div>
 
+    <!-- OUTPUT -->
     <section class="output-grid">
+
+      <!-- COMPONENTS -->
       <div class="panel">
         <h2>🧩 Components Required</h2>
         <div id="components"></div>
       </div>
 
+      <!-- MATERIALS -->
       <div class="panel">
         <h2>📦 Total Materials</h2>
         <div id="materials"></div>
@@ -53,44 +65,75 @@
           <div id="costTotal">💰 Cost To Make: 0</div>
         </div>
       </div>
+
     </section>
+
   </main>
 
-  <!-- Admin Modal -->
+  <!-- ===============================
+       🛠 ADMIN PANEL (MODAL)
+  =============================== -->
   <div id="popup" class="modal-backdrop">
     <div class="modal">
+
       <h3>🛠 Crafting Editor</h3>
 
+      <!-- EXISTING ITEM -->
       <label>Edit Existing Item</label>
       <select id="editItemSelect">
         <option value="">New Item</option>
       </select>
 
+      <!-- ITEM NAME -->
       <label>Item Name</label>
       <input id="newItem" placeholder="Item Name" />
 
+      <!-- XP -->
       <label>XP Per Craft</label>
       <input id="newXP" type="number" placeholder="XP" />
 
+      <!-- COMPONENTS -->
       <h4>🧩 Components</h4>
       <div id="componentsList"></div>
       <button type="button" class="secondary-btn" id="addComponentRowBtn">
         ➕ Add Component
       </button>
 
+      <!-- MATERIALS -->
       <h4>📦 Materials</h4>
       <div id="materialsList"></div>
       <button type="button" class="secondary-btn" id="addMaterialRowBtn">
         ➕ Add Material
       </button>
 
+      <!-- AUTH -->
       <label>Authenticator Code</label>
-      <input id="authCode" maxlength="6" inputmode="numeric" placeholder="6-digit code" />
+      <input id="authCode" maxlength="6" placeholder="6-digit code" />
 
+      <!-- ACTIONS -->
       <div class="modal-actions">
-        <button type="button" id="submitEditorBtn">💾 Save Item</button>
-        <button type="button" class="danger-btn" id="closeEditorBtn">Cancel</button>
+        <button id="submitEditorBtn">💾 Save Item</button>
+        <button class="danger-btn" id="closeEditorBtn">Cancel</button>
       </div>
+
+      <hr class="modal-divider">
+
+      <!-- ===============================
+           💰 COST EDITOR
+      =============================== -->
+
+      <h3>💰 Cost Editor</h3>
+
+      <label>Material</label>
+      <select id="costMaterialSelect"></select>
+
+      <label>Cost Per</label>
+      <input id="costPerInput" type="number" placeholder="Cost Per" />
+
+      <button id="saveCostBtn" class="secondary-btn">
+        💾 Save Cost
+      </button>
+
     </div>
   </div>
 
