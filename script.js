@@ -251,6 +251,128 @@ function calculate() {
 }
 
 // ===============================
+// 🧾 ADD / UPDATE
+// ===============================
+function openAddItem() {
+  document.getElementById("popup").style.display = "flex";
+  populateEditItemSelect();
+  resetEditor();
+}
+
+function closeAddItem() {
+  document.getElementById("popup").style.display = "none";
+}
+
+function populateEditItemSelect() {
+  const select = document.getElementById("editItemSelect");
+  select.innerHTML = `<option value="">New Item</option>`;
+
+  Object.keys(items).sort().forEach(item => {
+    const opt = document.createElement("option");
+    opt.value = item;
+    opt.textContent = item;
+    select.appendChild(opt);
+  });
+
+  select.onchange = () => {
+    if (select.value) {
+      loadItemIntoEditor(select.value);
+    } else {
+      resetEditor();
+    }
+  };
+}
+
+function resetEditor() {
+  document.getElementById("newItem").value = "";
+  document.getElementById("newXP").value = "";
+  document.getElementById("componentsList").innerHTML = "";
+  document.getElementById("materialsList").innerHTML = "";
+  document.getElementById("authCode").value = "";
+}
+
+function loadItemIntoEditor(itemName) {
+  resetEditor();
+
+  document.getElementById("newItem").value = itemName;
+  document.getElementById("newXP").value = items[itemName]?.xp || 0;
+
+  const itemMaterials = items[itemName]?.materials || {};
+  Object.entries(itemMaterials).forEach(([name, qty]) => {
+    addEditorRow("materialsList", name, qty);
+  });
+
+  const itemComponents = recipes[itemName] || [];
+  itemComponents.forEach(component => {
+    addEditorRow("componentsList", component.component, component.qty);
+  });
+}
+
+function addEditorRow(containerId, name = "", qty = "") {
+  const container = document.getElementById(containerId);
+
+  const row = document.createElement("div");
+  row.className = "row-input";
+
+  row.innerHTML = `
+    <input class="entry-name" placeholder="Name" value="${name}">
+    <input class="entry-qty" type="number" min="0" placeholder="Qty" value="${qty}">
+    <button type="button" onclick="this.parentElement.remove()">✖</button>
+  `;
+
+  container.appendChild(row);
+}
+
+function getEditorRows(containerId) {
+  return Array.from(document.querySelectorAll(`#${containerId} .row-input`))
+    .map(row => {
+      return {
+        name: row.querySelector(".entry-name").value.trim(),
+        qty: Number(row.querySelector(".entry-qty").value) || 0
+      };
+    })
+    .filter(row => row.name && row.qty > 0);
+}
+
+async function submitItem() {
+  const payload = {
+    item: document.getElementById("newItem").value.trim(),
+    xp: Number(document.getElementById("newXP").value) || 0,
+    components: getEditorRows("componentsList"),
+    materials: getEditorRows("materialsList"),
+    code: document.getElementById("authCode").value.trim()
+  };
+
+  if (!payload.item) {
+    alert("Item name is required");
+    return;
+  }
+
+  const res = await fetch(SHEET_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const result = await res.json();
+
+  if (!result.ok) {
+    alert(`❌ ${result.error || "Save failed"}`);
+    return;
+  }
+
+  alert("✅ Item saved");
+
+  closeAddItem();
+
+  await loadData();
+  initDropdown();
+  calculate();
+}
+
+// ===============================
 // 🧾 RENDER HELPER
 // ===============================
 function renderList(id, data) {
