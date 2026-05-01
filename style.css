@@ -149,6 +149,22 @@ button:active {
   color: #facc15;
 }
 
+.summary-top {
+  margin-bottom: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.summary-top div {
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+  font-weight: 700;
+}
+
 .summary-box {
   margin-top: 14px;
   padding-top: 12px;
