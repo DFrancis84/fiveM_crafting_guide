@@ -48,7 +48,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.getElementById("addQueueBtn").addEventListener("click", addSelectedItemToQueue);
   document.getElementById("openEditorBtn").addEventListener("click", openAddItem);
-  
+
+  document.querySelectorAll('input[name="fixerBoost"]').forEach(input => {
+  input.addEventListener("change", () => {
+    if (viewMode === "single") {
+      calculateSingle();
+    } else {
+      calculateQueue();
+    }
+  });
+});
   document.getElementById("includeComponentXP").addEventListener("change", () => {
     if (viewMode === "single") {
       calculateSingle();
@@ -251,7 +260,9 @@ function getMaterials(item, qty, result = {}) {
 }
 
 function getXP(item, qty, includeComponents = true) {
-  let total = (items[item]?.xp || 0) * qty;
+  const boost = getFixerBoost();
+
+  let total = ((items[item]?.xp || 0) + boost) * qty;
 
   if (!includeComponents) {
     return total;
@@ -265,6 +276,11 @@ function getXP(item, qty, includeComponents = true) {
   }
 
   return total;
+}
+
+function getFixerBoost() {
+  const selected = document.querySelector('input[name="fixerBoost"]:checked');
+  return Number(selected?.value || 0);
 }
 
 function getRecyclableTotal(materials) {
