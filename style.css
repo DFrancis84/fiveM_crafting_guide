@@ -213,6 +213,47 @@ button:active {
   font-weight: 700;
 }
 
+.xp-boost-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: #111827;
+  border: 1px solid #334155;
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  color: #e5e7eb;
+  font-weight: 700;
+}
+
+.boost-options {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  gap: 6px;
+}
+
+.boost-options input {
+  display: none;
+}
+
+.boost-options label {
+  cursor: pointer;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #cbd5e1;
+  transition: 0.2s ease;
+}
+
+.boost-options input:checked + label {
+  background: #38bdf8;
+  color: #020617;
+  border-color: #38bdf8;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.45);
+}
+
 .switch {
   position: relative;
   display: inline-block;
