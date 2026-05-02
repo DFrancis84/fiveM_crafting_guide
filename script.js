@@ -24,19 +24,29 @@ const nonRecyclableMaterials = new Set([
 // ===============================
 let items = {};
 let recipes = {};
+let kits = {};
 let costMap = {};
 let craftQueue = [];
 let viewMode = "single";
+
+let materialOptions = [];
+let componentOptions = [];
 
 // ===============================
 // INIT
 // ===============================
 document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("popup").style.display = "none";
-  
+
   await loadData();
+  buildEditorOptions();
   initDropdown();
   renderCraftQueue();
+
+  const savedXPSetting = localStorage.getItem("includeComponentXP");
+  if (savedXPSetting !== null) {
+    document.getElementById("includeComponentXP").checked = savedXPSetting === "true";
+  }
 
   document.getElementById("itemSelect").addEventListener("change", () => {
     if (viewMode === "single") calculateSingle();
@@ -49,25 +59,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("addQueueBtn").addEventListener("click", addSelectedItemToQueue);
   document.getElementById("openEditorBtn").addEventListener("click", openAddItem);
 
-  document.querySelectorAll('input[name="fixerBoost"]').forEach(input => {
-  input.addEventListener("change", () => {
-    if (viewMode === "single") {
-      calculateSingle();
-    } else {
-      calculateQueue();
-    }
-  });
-});
-  document.getElementById("includeComponentXP").addEventListener("change", () => {
-    if (viewMode === "single") {
-      calculateSingle();
-    } else {
-      calculateQueue();
-    }
-  });
-  
   document.getElementById("singleViewBtn").addEventListener("click", () => setViewMode("single"));
   document.getElementById("queueViewBtn").addEventListener("click", () => setViewMode("queue"));
+
+  document.getElementById("includeComponentXP").addEventListener("change", e => {
+    localStorage.setItem("includeComponentXP", e.target.checked);
+    recalculateCurrentView();
+  });
+
+  document.querySelectorAll('input[name="fixerBoost"]').forEach(input => {
+    input.addEventListener("change", recalculateCurrentView);
+  });
 
   document.getElementById("addComponentRowBtn").addEventListener("click", () => {
     addEditorRow("componentsList");
@@ -77,9 +79,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     addEditorRow("materialsList");
   });
 
-  document.getElementById("saveCostBtn").addEventListener("click", submitCostUpdate);
   document.getElementById("submitEditorBtn").addEventListener("click", submitItem);
   document.getElementById("closeEditorBtn").addEventListener("click", closeAddItem);
+  document.getElementById("saveCostBtn").addEventListener("click", submitCostUpdate);
 
   setViewMode("single");
 });
@@ -91,29 +93,44 @@ async function loadData() {
   const res = await fetch(DATA_ENDPOINT);
   const data = await res.json();
 
+  if (!res.ok || data.ok === false) {
+    throw new Error(data.error || "Failed to load data");
+  }
+
   items = data.items || {};
   recipes = data.recipes || {};
+  kits = data.kits || {};
   costMap = data.costs || {};
+}
+
+function buildEditorOptions() {
+  const materialSet = new Set();
+
+  Object.values(items).forEach(item => {
+    Object.keys(item.materials || {}).forEach(mat => materialSet.add(mat));
+  });
+
+  Object.keys(costMap).forEach(mat => {
+    if (mat !== "Recyclable Materials") materialSet.add(mat);
+  });
+
+  materialOptions = Array.from(materialSet).sort();
+  componentOptions = Object.keys(items).sort();
 }
 
 function initDropdown() {
   const select = document.getElementById("itemSelect");
   select.innerHTML = "";
 
-  Object.keys(items)
-    .sort()
-    .forEach(item => {
-      const opt = document.createElement("option");
-      opt.value = item;
-      opt.textContent = item;
-      select.appendChild(opt);
-    });
+  Object.keys(items).sort().forEach(item => {
+    const opt = document.createElement("option");
+    opt.value = item;
+    opt.textContent = item;
+    select.appendChild(opt);
+  });
 
-  if (select.options.length > 0) {
-    select.selectedIndex = 0;
-  }
+  if (select.options.length > 0) select.selectedIndex = 0;
 }
-
 // ===============================
 // VIEW MODE
 // ===============================
@@ -123,11 +140,12 @@ function setViewMode(mode) {
   document.getElementById("singleViewBtn").classList.toggle("active", mode === "single");
   document.getElementById("queueViewBtn").classList.toggle("active", mode === "queue");
 
-  if (mode === "single") {
-    calculateSingle();
-  } else {
-    calculateQueue();
-  }
+  recalculateCurrentView();
+}
+
+function recalculateCurrentView() {
+  if (viewMode === "single") calculateSingle();
+  else calculateQueue();
 }
 
 // ===============================
@@ -141,11 +159,8 @@ function addSelectedItemToQueue() {
 
   const existing = craftQueue.find(entry => entry.item === item);
 
-  if (existing) {
-    existing.qty += qty;
-  } else {
-    craftQueue.push({ item, qty });
-  }
+  if (existing) existing.qty += qty;
+  else craftQueue.push({ item, qty });
 
   renderCraftQueue();
   setViewMode("queue");
@@ -153,6 +168,12 @@ function addSelectedItemToQueue() {
 
 function removeFromQueue(index) {
   craftQueue.splice(index, 1);
+  renderCraftQueue();
+  calculateQueue();
+}
+
+function clearQueue() {
+  craftQueue = [];
   renderCraftQueue();
   calculateQueue();
 }
@@ -186,9 +207,10 @@ function renderCraftQueue() {
 function calculateSingle() {
   const item = document.getElementById("itemSelect").value;
   const qty = Math.max(1, Number(document.getElementById("quantity").value) || 1);
-  const includeComponentXP = document.getElementById("includeComponentXP").checked;
 
   if (!item) return;
+
+  const includeComponentXP = document.getElementById("includeComponentXP").checked;
 
   const components = getComponents(item, qty);
   const materials = getMaterials(item, qty);
@@ -205,6 +227,7 @@ function calculateQueue() {
   let totalXP = 0;
 
   const includeComponentXP = document.getElementById("includeComponentXP").checked;
+
   craftQueue.forEach(entry => {
     const components = getComponents(entry.item, entry.qty);
     const materials = getMaterials(entry.item, entry.qty);
@@ -212,7 +235,6 @@ function calculateQueue() {
 
     mergeTotals(totalComponents, components);
     mergeTotals(totalMaterials, materials);
-
     totalXP += xp;
   });
 
@@ -259,14 +281,16 @@ function getMaterials(item, qty, result = {}) {
   return result;
 }
 
+function getFixerBoost() {
+  const selected = document.querySelector('input[name="fixerBoost"]:checked');
+  return Number(selected?.value || 0);
+}
+
 function getXP(item, qty, includeComponents = true) {
   const boost = getFixerBoost();
-
   let total = ((items[item]?.xp || 0) + boost) * qty;
 
-  if (!includeComponents) {
-    return total;
-  }
+  if (!includeComponents) return total;
 
   const comps = recipes[item];
   if (comps) {
@@ -278,18 +302,11 @@ function getXP(item, qty, includeComponents = true) {
   return total;
 }
 
-function getFixerBoost() {
-  const selected = document.querySelector('input[name="fixerBoost"]:checked');
-  return Number(selected?.value || 0);
-}
-
 function getRecyclableTotal(materials) {
   let total = 0;
 
   Object.entries(materials).forEach(([mat, qty]) => {
-    if (!nonRecyclableMaterials.has(mat)) {
-      total += qty;
-    }
+    if (!nonRecyclableMaterials.has(mat)) total += qty;
   });
 
   return total;
@@ -308,7 +325,6 @@ function getCraftCost(materials) {
   });
 
   totalCost += recyclableTotal * Number(costMap["Recyclable Materials"] || 0);
-
   return totalCost;
 }
 
@@ -347,7 +363,6 @@ function renderList(id, data) {
     el.appendChild(row);
   });
 }
-
 // ===============================
 // ADD / UPDATE EDITOR
 // ===============================
@@ -366,21 +381,16 @@ function populateEditItemSelect() {
   const select = document.getElementById("editItemSelect");
   select.innerHTML = `<option value="">New Item</option>`;
 
-  Object.keys(items)
-    .sort()
-    .forEach(item => {
-      const opt = document.createElement("option");
-      opt.value = item;
-      opt.textContent = item;
-      select.appendChild(opt);
-    });
+  Object.keys(items).sort().forEach(item => {
+    const opt = document.createElement("option");
+    opt.value = item;
+    opt.textContent = item;
+    select.appendChild(opt);
+  });
 
   select.onchange = () => {
-    if (select.value) {
-      loadItemIntoEditor(select.value);
-    } else {
-      resetEditor();
-    }
+    if (select.value) loadItemIntoEditor(select.value);
+    else resetEditor();
   };
 }
 
@@ -398,13 +408,11 @@ function loadItemIntoEditor(itemName) {
   document.getElementById("newItem").value = itemName;
   document.getElementById("newXP").value = items[itemName]?.xp || 0;
 
-  const itemMaterials = items[itemName]?.materials || {};
-  Object.entries(itemMaterials).forEach(([name, qty]) => {
+  Object.entries(items[itemName]?.materials || {}).forEach(([name, qty]) => {
     addEditorRow("materialsList", name, qty);
   });
 
-  const itemComponents = recipes[itemName] || [];
-  itemComponents.forEach(component => {
+  (recipes[itemName] || []).forEach(component => {
     addEditorRow("componentsList", component.component, component.qty);
   });
 }
@@ -412,46 +420,90 @@ function loadItemIntoEditor(itemName) {
 function addEditorRow(containerId, name = "", qty = "") {
   const container = document.getElementById(containerId);
 
+  const options = containerId === "materialsList"
+    ? materialOptions
+    : componentOptions;
+
   const row = document.createElement("div");
   row.className = "editor-row";
 
   row.innerHTML = `
-    <input class="entry-name" placeholder="Name" value="${escapeHtml(name)}">
+    <select class="entry-name">
+      ${buildOptions(options, name)}
+      <option value="__custom__" ${!options.includes(name) && name ? "selected" : ""}>Custom...</option>
+    </select>
+
+    <input class="custom-entry-name" placeholder="Custom name" value="${!options.includes(name) ? escapeHtml(name) : ""}" style="display:${!options.includes(name) && name ? "block" : "none"};">
+
     <input class="entry-qty" type="number" min="0" placeholder="Qty" value="${qty}">
     <button type="button" onclick="this.parentElement.remove()">✖</button>
   `;
 
+  const select = row.querySelector(".entry-name");
+  const customInput = row.querySelector(".custom-entry-name");
+
+  select.addEventListener("change", () => {
+    customInput.style.display = select.value === "__custom__" ? "block" : "none";
+  });
+
   container.appendChild(row);
 }
 
+function buildOptions(list, selected = "") {
+  return list.map(item => `
+    <option value="${escapeHtml(item)}" ${item === selected ? "selected" : ""}>
+      ${escapeHtml(item)}
+    </option>
+  `).join("");
+}
+
 function getEditorRows(containerId) {
-  return Array.from(document.querySelectorAll(`#${containerId} .editor-row`))
-    .map(row => ({
-      name: row.querySelector(".entry-name").value.trim(),
-      qty: Number(row.querySelector(".entry-qty").value) || 0
-    }))
-    .filter(row => row.name && row.qty > 0);
+  const rows = Array.from(document.querySelectorAll(`#${containerId} .editor-row`));
+
+  const parsed = rows.map(row => {
+    const selected = row.querySelector(".entry-name").value;
+    const custom = row.querySelector(".custom-entry-name").value.trim();
+    const qty = Number(row.querySelector(".entry-qty").value) || 0;
+
+    const name = selected === "__custom__" ? custom : selected;
+
+    return { name, qty };
+  }).filter(row => row.name && row.qty > 0);
+
+  const merged = {};
+
+  parsed.forEach(row => {
+    merged[row.name] = (merged[row.name] || 0) + row.qty;
+  });
+
+  return Object.entries(merged).map(([name, qty]) => ({ name, qty }));
 }
 
 async function submitItem() {
+  const authCode = document.getElementById("authCode").value.trim();
+
+  if (!authCode) {
+    alert("Authenticator code is required.");
+    return;
+  }
+
   const payload = {
+    action: "updateItem",
     item: document.getElementById("newItem").value.trim(),
     xp: Number(document.getElementById("newXP").value) || 0,
     components: getEditorRows("componentsList"),
     materials: getEditorRows("materialsList"),
-    code: document.getElementById("authCode").value.trim()
+    code: authCode
   };
 
   if (!payload.item) {
-    alert("Item name is required");
+    alert("Item name is required.");
     return;
   }
 
   const res = await fetch(SAVE_ENDPOINT, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   });
 
@@ -463,50 +515,33 @@ async function submitItem() {
   }
 
   alert("✅ Item saved");
-
   closeAddItem();
 
   await loadData();
+  buildEditorOptions();
   initDropdown();
   renderCraftQueue();
-
-  if (viewMode === "single") {
-    calculateSingle();
-  } else {
-    calculateQueue();
-  }
-}
-
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
+  recalculateCurrentView();
 }
 
 function populateCostEditor() {
   const select = document.getElementById("costMaterialSelect");
   select.innerHTML = "";
 
-  Object.keys(costMap)
-    .sort()
-    .forEach(material => {
-      const opt = document.createElement("option");
-      opt.value = material;
-      opt.textContent = material;
-      select.appendChild(opt);
-    });
+  Object.keys(costMap).sort().forEach(material => {
+    const opt = document.createElement("option");
+    opt.value = material;
+    opt.textContent = material;
+    select.appendChild(opt);
+  });
 
   if (select.options.length > 0) {
     select.selectedIndex = 0;
-    document.getElementById("costPerInput").value =
-      costMap[select.value] || 0;
+    document.getElementById("costPerInput").value = costMap[select.value] || 0;
   }
 
   select.onchange = () => {
-    document.getElementById("costPerInput").value =
-      costMap[select.value] || 0;
+    document.getElementById("costPerInput").value = costMap[select.value] || 0;
   };
 }
 
@@ -527,9 +562,7 @@ async function submitCostUpdate() {
 
   const res = await fetch(SAVE_ENDPOINT, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   });
 
@@ -543,11 +576,15 @@ async function submitCostUpdate() {
   alert("✅ Cost updated");
 
   await loadData();
+  buildEditorOptions();
   populateCostEditor();
+  recalculateCurrentView();
+}
 
-  if (viewMode === "single") {
-    calculateSingle();
-  } else {
-    calculateQueue();
-  }
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
 }
