@@ -511,11 +511,18 @@ function populateCostEditor() {
 }
 
 async function submitCostUpdate() {
+  const authCode = document.getElementById("authCode").value.trim();
+
+  if (!authCode) {
+    alert("Authenticator code is required to update costs.");
+    return;
+  }
+
   const payload = {
     action: "updateCost",
     material: document.getElementById("costMaterialSelect").value,
     costPer: Number(document.getElementById("costPerInput").value) || 0,
-    code: document.getElementById("authCode").value.trim()
+    code: authCode
   };
 
   const res = await fetch(SAVE_ENDPOINT, {
