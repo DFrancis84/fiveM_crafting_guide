@@ -2,11 +2,9 @@
 // CONFIG
 // ===============================
 
-// Replace these with your Cloudflare Worker endpoints.
 const DATA_ENDPOINT = "https://lucidcrafting.devinfrancis84.workers.dev/api/data";
 const SAVE_ENDPOINT = "https://lucidcrafting.devinfrancis84.workers.dev";
 
-// Materials excluded from recyclable total.
 const nonRecyclableMaterials = new Set([
   "Titanium",
   "Circuit Board",
@@ -17,12 +15,13 @@ const nonRecyclableMaterials = new Set([
   "Gunpowder",
   "Golden Nugget",
   "Copper Ore"
-  ]);
+]);
 
 // ===============================
 // GLOBAL STATE
 // ===============================
 let items = {};
+let categories = {};
 let recipes = {};
 let kits = {};
 let costMap = {};
@@ -31,6 +30,7 @@ let viewMode = "single";
 
 let materialOptions = [];
 let componentOptions = [];
+let categoryOptions = [];
 
 // ===============================
 // INIT
@@ -40,13 +40,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   await loadData();
   buildEditorOptions();
-  initDropdown();
+  initDropdowns();
   renderCraftQueue();
 
   const savedXPSetting = localStorage.getItem("includeComponentXP");
   if (savedXPSetting !== null) {
     document.getElementById("includeComponentXP").checked = savedXPSetting === "true";
   }
+
+  document.getElementById("categorySelect").addEventListener("change", () => {
+    populateItemDropdown(document.getElementById("categorySelect").value);
+    if (viewMode === "single") calculateSingle();
+  });
 
   document.getElementById("itemSelect").addEventListener("change", () => {
     if (viewMode === "single") calculateSingle();
@@ -98,15 +103,36 @@ async function loadData() {
   }
 
   items = data.items || {};
+  categories = data.categories || buildCategoriesFromItems(items);
   recipes = data.recipes || {};
   kits = data.kits || {};
   costMap = data.costs || {};
 }
 
+function buildCategoriesFromItems(itemMap) {
+  const fallback = {};
+
+  Object.entries(itemMap).forEach(([itemName, itemData]) => {
+    const category = itemData.category || "Other";
+
+    if (!fallback[category]) fallback[category] = [];
+    fallback[category].push(itemName);
+  });
+
+  Object.keys(fallback).forEach(category => {
+    fallback[category].sort();
+  });
+
+  return fallback;
+}
+
 function buildEditorOptions() {
   const materialSet = new Set();
+  const categorySet = new Set(Object.keys(categories));
 
   Object.values(items).forEach(item => {
+    if (item.category) categorySet.add(item.category);
+
     Object.keys(item.materials || {}).forEach(mat => materialSet.add(mat));
   });
 
@@ -116,21 +142,55 @@ function buildEditorOptions() {
 
   materialOptions = Array.from(materialSet).sort();
   componentOptions = Object.keys(items).sort();
+  categoryOptions = Array.from(categorySet).sort();
 }
 
-function initDropdown() {
-  const select = document.getElementById("itemSelect");
-  select.innerHTML = "";
+// ===============================
+// CATEGORY + ITEM DROPDOWNS
+// ===============================
+function initDropdowns() {
+  const categorySelect = document.getElementById("categorySelect");
 
-  Object.keys(items).sort().forEach(item => {
+  categorySelect.innerHTML = `<option value="">Select Category</option>`;
+
+  categoryOptions.forEach(category => {
+    const opt = document.createElement("option");
+    opt.value = category;
+    opt.textContent = category;
+    categorySelect.appendChild(opt);
+  });
+
+  if (categoryOptions.length > 0) {
+    categorySelect.value = categoryOptions[0];
+    populateItemDropdown(categoryOptions[0]);
+  } else {
+    populateItemDropdown("");
+  }
+}
+
+function populateItemDropdown(category) {
+  const itemSelect = document.getElementById("itemSelect");
+  itemSelect.innerHTML = `<option value="">Select Item</option>`;
+
+  if (!category || !categories[category]) {
+    itemSelect.disabled = true;
+    return;
+  }
+
+  categories[category].forEach(item => {
     const opt = document.createElement("option");
     opt.value = item;
     opt.textContent = item;
-    select.appendChild(opt);
+    itemSelect.appendChild(opt);
   });
 
-  if (select.options.length > 0) select.selectedIndex = 0;
+  itemSelect.disabled = false;
+
+  if (itemSelect.options.length > 1) {
+    itemSelect.selectedIndex = 1;
+  }
 }
+
 // ===============================
 // VIEW MODE
 // ===============================
@@ -192,7 +252,7 @@ function renderCraftQueue() {
     row.className = "queue-row";
 
     row.innerHTML = `
-      <span class="queue-name">${entry.item}</span>
+      <span class="queue-name">${escapeHtml(entry.item)}</span>
       <strong>x${entry.qty.toLocaleString()}</strong>
       <button type="button" onclick="removeFromQueue(${index})">Remove</button>
     `;
@@ -208,7 +268,10 @@ function calculateSingle() {
   const item = document.getElementById("itemSelect").value;
   const qty = Math.max(1, Number(document.getElementById("quantity").value) || 1);
 
-  if (!item) return;
+  if (!item) {
+    updateOutput({}, {}, 0, 0, 0);
+    return;
+  }
 
   const includeComponentXP = document.getElementById("includeComponentXP").checked;
 
@@ -359,10 +422,11 @@ function renderList(id, data) {
   entries.forEach(([name, qty]) => {
     const row = document.createElement("div");
     row.className = "result-row";
-    row.innerHTML = `<span>${name}</span><strong>${qty.toLocaleString()}</strong>`;
+    row.innerHTML = `<span>${escapeHtml(name)}</span><strong>${qty.toLocaleString()}</strong>`;
     el.appendChild(row);
   });
 }
+
 // ===============================
 // ADD / UPDATE EDITOR
 // ===============================
@@ -395,6 +459,9 @@ function populateEditItemSelect() {
 }
 
 function resetEditor() {
+  const categoryInput = document.getElementById("newCategory");
+  if (categoryInput) categoryInput.value = "";
+
   document.getElementById("newItem").value = "";
   document.getElementById("newXP").value = "";
   document.getElementById("componentsList").innerHTML = "";
@@ -404,6 +471,9 @@ function resetEditor() {
 
 function loadItemIntoEditor(itemName) {
   resetEditor();
+
+  const categoryInput = document.getElementById("newCategory");
+  if (categoryInput) categoryInput.value = items[itemName]?.category || "";
 
   document.getElementById("newItem").value = itemName;
   document.getElementById("newXP").value = items[itemName]?.xp || 0;
@@ -487,14 +557,19 @@ async function submitItem() {
     return;
   }
 
+  const categoryInput = document.getElementById("newCategory");
+
   const payload = {
     action: "updateItem",
+    category: categoryInput ? categoryInput.value.trim() : "Other",
     item: document.getElementById("newItem").value.trim(),
     xp: Number(document.getElementById("newXP").value) || 0,
     components: getEditorRows("componentsList"),
     materials: getEditorRows("materialsList"),
     code: authCode
   };
+
+  if (!payload.category) payload.category = "Other";
 
   if (!payload.item) {
     alert("Item name is required.");
@@ -519,11 +594,14 @@ async function submitItem() {
 
   await loadData();
   buildEditorOptions();
-  initDropdown();
+  initDropdowns();
   renderCraftQueue();
   recalculateCurrentView();
 }
 
+// ===============================
+// COST EDITOR
+// ===============================
 function populateCostEditor() {
   const select = document.getElementById("costMaterialSelect");
   select.innerHTML = "";
@@ -581,6 +659,9 @@ async function submitCostUpdate() {
   recalculateCurrentView();
 }
 
+// ===============================
+// HELPERS
+// ===============================
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
