@@ -36,7 +36,8 @@ let categoryOptions = [];
 // INIT
 // ===============================
 document.addEventListener("DOMContentLoaded", async () => {
-  document.getElementById("popup").style.display = "none";
+  const popup = document.getElementById("popup");
+  if (popup) popup.style.display = "none";
 
   await loadData();
   buildEditorOptions();
@@ -50,16 +51,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.getElementById("categorySelect").addEventListener("change", () => {
     populateItemDropdown(document.getElementById("categorySelect").value);
+    updateCraftableCount();
     if (viewMode === "single") calculateSingle();
   });
 
   document.getElementById("itemSelect").addEventListener("change", () => {
+    updateCraftableCount();
     if (viewMode === "single") calculateSingle();
   });
 
   document.getElementById("quantity").addEventListener("input", () => {
     if (viewMode === "single") calculateSingle();
   });
+
+  document.getElementById("ownedRecyclables").addEventListener("input", updateCraftableCount);
 
   document.getElementById("addQueueBtn").addEventListener("click", addSelectedItemToQueue);
   document.getElementById("openEditorBtn").addEventListener("click", openAddItem);
@@ -84,15 +89,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     addEditorRow("materialsList");
   });
 
-  document.getElementById("ownedRecyclables").addEventListener("input", updateCraftableCount);
-  document.getElementById("itemSelect").addEventListener("change", updateCraftableCount);
-  document.getElementById("categorySelect").addEventListener("change", updateCraftableCount);
-  
   document.getElementById("submitEditorBtn").addEventListener("click", submitItem);
   document.getElementById("closeEditorBtn").addEventListener("click", closeAddItem);
   document.getElementById("saveCostBtn").addEventListener("click", submitCostUpdate);
 
   setViewMode("single");
+  updateCraftableCount();
 });
 
 // ===============================
@@ -178,6 +180,7 @@ function populateItemDropdown(category) {
 
   if (!category || !categories[category]) {
     itemSelect.disabled = true;
+    updateCraftableCount();
     return;
   }
 
@@ -193,7 +196,7 @@ function populateItemDropdown(category) {
   if (itemSelect.options.length > 1) {
     itemSelect.selectedIndex = 1;
   }
-  
+
   updateCraftableCount();
 }
 
@@ -212,6 +215,8 @@ function setViewMode(mode) {
 function recalculateCurrentView() {
   if (viewMode === "single") calculateSingle();
   else calculateQueue();
+
+  updateCraftableCount();
 }
 
 // ===============================
@@ -276,6 +281,7 @@ function calculateSingle() {
 
   if (!item) {
     updateOutput({}, {}, 0, 0, 0);
+    updateCraftableCount();
     return;
   }
 
@@ -312,6 +318,33 @@ function calculateQueue() {
   const cost = getCraftCost(totalMaterials);
 
   updateOutput(totalComponents, totalMaterials, totalXP, recyclable, cost);
+}
+
+function updateCraftableCount() {
+  const itemSelect = document.getElementById("itemSelect");
+  const ownedInput = document.getElementById("ownedRecyclables");
+  const output = document.getElementById("craftableCount");
+
+  if (!itemSelect || !ownedInput || !output) return;
+
+  const item = itemSelect.value;
+  const owned = Number(ownedInput.value) || 0;
+
+  if (!item || owned <= 0) {
+    output.textContent = "Can craft: 0";
+    return;
+  }
+
+  const materialsForOne = getMaterials(item, 1);
+  const recyclableNeeded = getRecyclableTotal(materialsForOne);
+
+  if (recyclableNeeded <= 0) {
+    output.textContent = "Can craft: ∞";
+    return;
+  }
+
+  const craftable = Math.floor(owned / recyclableNeeded);
+  output.textContent = `Can craft: ${craftable.toLocaleString()}`;
 }
 
 function mergeTotals(target, source) {
@@ -432,29 +465,6 @@ function renderList(id, data) {
     row.innerHTML = `<span>${escapeHtml(name)}</span><strong>${qty.toLocaleString()}</strong>`;
     el.appendChild(row);
   });
-}
-
-function updateCraftableCount() {
-  const item = document.getElementById("itemSelect").value;
-  const owned = Number(document.getElementById("ownedRecyclables").value) || 0;
-  const output = document.getElementById("craftableCount");
-
-  if (!item || owned <= 0) {
-    output.textContent = "Can craft: 0";
-    return;
-  }
-
-  const materialsForOne = getMaterials(item, 1);
-  const recyclableNeeded = getRecyclableTotal(materialsForOne);
-
-  if (recyclableNeeded <= 0) {
-    output.textContent = "Can craft: ∞";
-    return;
-  }
-
-  const craftable = Math.floor(owned / recyclableNeeded);
-
-  output.textContent = `Can craft: ${craftable.toLocaleString()}`;
 }
 
 // ===============================
