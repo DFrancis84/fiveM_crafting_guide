@@ -193,6 +193,8 @@ function populateItemDropdown(category) {
   if (itemSelect.options.length > 1) {
     itemSelect.selectedIndex = 1;
   }
+  
+  updateCraftableCount();
 }
 
 // ===============================
@@ -286,6 +288,7 @@ function calculateSingle() {
   const cost = getCraftCost(materials);
 
   updateOutput(components, materials, xp, recyclable, cost);
+  updateCraftableCount();
 }
 
 function calculateQueue() {
