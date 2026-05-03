@@ -292,8 +292,9 @@ function calculateSingle() {
   const xp = getXP(item, qty, includeComponentXP);
   const recyclable = getRecyclableTotal(materials);
   const cost = getCraftCost(materials);
+  const stopLevel = (items[item]?.stopXP || 0) / 100;
 
-  updateOutput(components, materials, xp, recyclable, cost);
+  updateOutput(components, materials, xp, recyclable, cost, stopLevel);
   updateCraftableCount();
 }
 
@@ -303,12 +304,15 @@ function calculateQueue() {
   let totalXP = 0;
 
   const includeComponentXP = document.getElementById("includeComponentXP").checked;
-
+  let maxStopLevel = 0;
+  
   craftQueue.forEach(entry => {
     const components = getComponents(entry.item, entry.qty);
     const materials = getMaterials(entry.item, entry.qty);
     const xp = getXP(entry.item, entry.qty, includeComponentXP);
-
+    const itemStop = (items[entry.item]?.stopXP || 0) / 100;
+    if (itemStop > maxStopLevel) maxStopLevel = itemStop;
+    
     mergeTotals(totalComponents, components);
     mergeTotals(totalMaterials, materials);
     totalXP += xp;
@@ -317,7 +321,7 @@ function calculateQueue() {
   const recyclable = getRecyclableTotal(totalMaterials);
   const cost = getCraftCost(totalMaterials);
 
-  updateOutput(totalComponents, totalMaterials, totalXP, recyclable, cost);
+  updateOutput(totalComponents, totalMaterials, totalXP, recyclable, cost, maxStopLevel);
 }
 
 function updateCraftableCount() {
@@ -434,10 +438,13 @@ function getCraftCost(materials) {
 // ===============================
 // RENDERING
 // ===============================
-function updateOutput(components, materials, xp, recyclable, cost) {
+function updateOutput(components, materials, xp, recyclable, cost, stopLevel = 0) {
   renderList("components", components);
   renderList("materials", materials);
 
+  document.getElementById("stopLevel").textContent =
+    `🎯 Stop Level: ${stopLevel.toLocaleString()}`;
+  
   document.getElementById("xpTotal").textContent =
     `⭐ XP Gained: ${xp.toLocaleString()}`;
 
