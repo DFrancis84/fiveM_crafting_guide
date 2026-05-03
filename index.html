@@ -18,7 +18,14 @@
       <h2>🎯 Craft Selector</h2>
 
       <div class="controls">
-        <select id="itemSelect"></select>
+        <select id="categorySelect">
+          <option value="">Select Category</option>
+        </select>
+
+        <select id="itemSelect" disabled>
+          <option value="">Select Item</option>
+        </select>
+
         <input id="quantity" type="number" value="1" min="1" />
         <button id="addQueueBtn">➕ Add Item</button>
         <button id="openEditorBtn">⚙️ Admin Panel</button>
@@ -93,6 +100,9 @@
         <option value="">New Item</option>
       </select>
 
+      <label>Category</label>
+      <input id="newCategory" placeholder="Category" />
+      
       <label>Item Name</label>
       <input id="newItem" placeholder="Item Name" />
 
