@@ -59,7 +59,6 @@
 
     <div class="xp-boost-toggle">
       <span>Fixer XP Boost</span>
-
       <div class="boost-options">
         <input type="radio" id="boost0" name="fixerBoost" value="0" checked>
         <label for="boost0">None</label>
@@ -95,6 +94,52 @@
       </div>
     </section>
   </main>
+
+  <!-- ADMIN MODAL (FIXED) -->
+  <div id="popup" class="modal-backdrop">
+    <div class="modal">
+      <h3>🛠 Crafting Editor</h3>
+
+      <label>Edit Existing Item</label>
+      <select id="editItemSelect">
+        <option value="">New Item</option>
+      </select>
+
+      <label>Category</label>
+      <input id="newCategory" placeholder="Category" />
+
+      <label>Item Name</label>
+      <input id="newItem" placeholder="Item Name" />
+
+      <label>XP Per Craft</label>
+      <input id="newXP" type="number" placeholder="XP" />
+
+      <h4>🧩 Components</h4>
+      <div id="componentsList"></div>
+      <button id="addComponentRowBtn">➕ Add Component</button>
+
+      <h4>📦 Materials</h4>
+      <div id="materialsList"></div>
+      <button id="addMaterialRowBtn">➕ Add Material</button>
+
+      <label>Authenticator Code</label>
+      <input id="authCode" maxlength="6" placeholder="6-digit code" />
+
+      <div class="modal-actions">
+        <button id="submitEditorBtn">💾 Save Item</button>
+        <button id="closeEditorBtn">Cancel</button>
+      </div>
+
+      <hr>
+
+      <h3>💰 Cost Editor</h3>
+
+      <select id="costMaterialSelect"></select>
+      <input id="costPerInput" type="number" placeholder="Cost Per" />
+
+      <button id="saveCostBtn">💾 Save Cost</button>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>
