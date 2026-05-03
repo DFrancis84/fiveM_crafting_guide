@@ -1,17 +1,15 @@
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: system-ui, Arial, sans-serif;
+  font-family: system-ui;
   background: #020617;
   color: #e5e7eb;
 }
 
 .app {
   width: min(1100px, 100%);
-  margin: 0 auto;
+  margin: auto;
   padding: 18px;
 }
 
@@ -20,15 +18,7 @@ body {
   margin-bottom: 18px;
 }
 
-.header h1 {
-  margin: 0;
-  color: #38bdf8;
-}
-
-.header p {
-  color: #94a3b8;
-  margin: 6px 0 0;
-}
+.header h1 { color: #38bdf8; }
 
 .panel {
   background: #111827;
@@ -38,10 +28,7 @@ body {
   margin-bottom: 16px;
 }
 
-/* ========================= */
-/* CONTROLS GRID (FIXED) */
-/* ========================= */
-
+/* CONTROLS GRID */
 .controls {
   display: grid;
   grid-template-columns: 1fr 1fr 90px 150px 130px auto auto;
@@ -49,112 +36,59 @@ body {
   align-items: center;
 }
 
-.controls select,
-.controls input,
-.controls button {
-  width: 100%;
-}
-
-/* ========================= */
-/* INPUTS */
-/* ========================= */
-
-select,
-input,
-button {
+select, input, button {
   min-height: 42px;
   border-radius: 10px;
   border: 1px solid #334155;
   padding: 10px;
-  font-size: 15px;
 }
 
-select,
-input {
+select, input {
   background: #020617;
   color: #e5e7eb;
 }
 
-select:disabled {
-  opacity: 0.5;
-}
-
-select:focus,
-input:focus {
-  outline: none;
-  border-color: #38bdf8;
-  box-shadow: 0 0 8px rgba(56,189,248,0.4);
-}
-
-/* ========================= */
-/* BUTTONS */
-/* ========================= */
-
 button {
   background: #38bdf8;
   color: #020617;
-  font-weight: 700;
-  cursor: pointer;
+  font-weight: bold;
 }
 
-button:hover {
-  opacity: 0.9;
-}
-
-/* ========================= */
-/* CRAFTABLE DISPLAY */
-/* ========================= */
-
+/* CRAFTABLE */
 #craftableCount {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   background: #020617;
   border: 1px solid #334155;
   border-radius: 10px;
-  padding: 10px;
-  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
   color: #22c55e;
-  white-space: nowrap;
 }
 
-/* ========================= */
-/* OTHER (UNCHANGED CORE UI) */
-/* ========================= */
-
-.queue-list {
-  display: grid;
-  gap: 8px;
-}
-
+/* QUEUE */
 .queue-row {
   display: grid;
   grid-template-columns: 1fr auto auto;
   gap: 10px;
   background: #020617;
   border: 1px solid #334155;
-  border-radius: 10px;
   padding: 10px;
+  border-radius: 10px;
 }
 
-.queue-name {
-  font-weight: 700;
-}
-
-.result-row {
+/* OUTPUT */
+.output-grid {
   display: grid;
-  grid-template-columns: 1fr auto;
-  padding: 8px 0;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
 
 .summary-box {
   background: #020617;
   border: 1px solid #334155;
-  border-radius: 10px;
   padding: 10px;
-  display: grid;
-  gap: 6px;
-  font-weight: 700;
+  border-radius: 10px;
 }
 
 .section-divider {
@@ -167,16 +101,29 @@ button:hover {
 #recyclableTotal { color: #38bdf8; }
 #costTotal { color: #facc15; }
 
-.muted {
-  color: #94a3b8;
+.muted { color: #94a3b8; }
+
+/* MODAL */
+.modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  justify-content: center;
+  align-items: center;
 }
 
-/* ========================= */
-/* MOBILE */
-/* ========================= */
+.modal {
+  background: #111827;
+  padding: 18px;
+  border-radius: 14px;
+  width: 500px;
+}
 
+/* MOBILE */
 @media (max-width: 760px) {
-  .controls {
+  .controls,
+  .output-grid {
     grid-template-columns: 1fr;
   }
 }
