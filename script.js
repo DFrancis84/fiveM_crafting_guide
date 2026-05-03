@@ -84,6 +84,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     addEditorRow("materialsList");
   });
 
+  document.getElementById("ownedRecyclables").addEventListener("input", updateCraftableCount);
+  document.getElementById("itemSelect").addEventListener("change", updateCraftableCount);
+  document.getElementById("categorySelect").addEventListener("change", updateCraftableCount);
+  
   document.getElementById("submitEditorBtn").addEventListener("click", submitItem);
   document.getElementById("closeEditorBtn").addEventListener("click", closeAddItem);
   document.getElementById("saveCostBtn").addEventListener("click", submitCostUpdate);
