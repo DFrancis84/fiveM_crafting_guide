@@ -46,9 +46,15 @@ body {
 
 .controls {
   display: grid;
-  grid-template-columns: 1fr 110px auto auto;
+  grid-template-columns: 1fr 1fr 110px auto auto;
   gap: 10px;
   align-items: center;
+}
+
+.controls select,
+.controls input,
+.controls button {
+  width: 100%;
 }
 
 select,
@@ -65,6 +71,18 @@ select,
 input {
   background: #020617;
   color: #e5e7eb;
+}
+
+select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+select:focus,
+input:focus {
+  outline: none;
+  border-color: #38bdf8;
+  box-shadow: 0 0 8px rgba(56,189,248,0.4);
 }
 
 button {
@@ -357,6 +375,12 @@ button:active {
   .output-grid,
   .view-toggle {
     grid-template-columns: 1fr;
+  }
+
+  .controls select,
+  .controls input,
+  .controls button {
+    width: 100%;
   }
 
   .xp-toggle,
