@@ -381,6 +381,10 @@ button:active {
   margin: 18px 0;
 }
 
+#stopLevel {
+  color: #f472b6; /* pink accent */
+}
+
 @media (max-width: 760px) {
   .app {
     padding: 12px;
