@@ -431,6 +431,29 @@ function renderList(id, data) {
   });
 }
 
+function updateCraftableCount() {
+  const item = document.getElementById("itemSelect").value;
+  const owned = Number(document.getElementById("ownedRecyclables").value) || 0;
+  const output = document.getElementById("craftableCount");
+
+  if (!item || owned <= 0) {
+    output.textContent = "Can craft: 0";
+    return;
+  }
+
+  const materialsForOne = getMaterials(item, 1);
+  const recyclableNeeded = getRecyclableTotal(materialsForOne);
+
+  if (recyclableNeeded <= 0) {
+    output.textContent = "Can craft: ∞";
+    return;
+  }
+
+  const craftable = Math.floor(owned / recyclableNeeded);
+
+  output.textContent = `Can craft: ${craftable.toLocaleString()}`;
+}
+
 // ===============================
 // ADD / UPDATE EDITOR
 // ===============================
