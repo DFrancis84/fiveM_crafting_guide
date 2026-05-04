@@ -62,8 +62,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("quantity").addEventListener("input", recalculateCurrentView);
 
   document.getElementById("ownedRecyclables").addEventListener("input", updateCraftableCount);
-
-  document.getElementById("useOwnedMaterials").addEventListener("change", recalculateCurrentView);
+  
+  document.getElementById("useOwnedMaterials").addEventListener("change", () => {
+    recalculateCurrentView();
+    updateOwnedSummaryRecyclables();
+  });
 
   document.getElementById("addQueueBtn").addEventListener("click", addSelectedItemToQueue);
   document.getElementById("openEditorBtn").addEventListener("click", openAddItem);
@@ -467,6 +470,8 @@ function renderList(id, data) {
 
         const newRemaining = Math.max(0, qty - value);
         output.textContent = newRemaining.toLocaleString();
+
+        updateOwnedSummaryRecyclables();
       });
     } else {
       row.className = "result-row";
@@ -477,6 +482,30 @@ function renderList(id, data) {
   });
 }
 
+function updateOwnedSummaryRecyclables() {
+  const useOwned = document.getElementById("useOwnedMaterials")?.checked;
+
+  if (!useOwned) {
+    recalculateCurrentView();
+    return;
+  }
+
+  const materialRows = document.querySelectorAll("#materials .material-owned-row");
+  let total = 0;
+
+  materialRows.forEach(row => {
+    const materialName = row.querySelector("span")?.textContent || "";
+    const remainingText = row.querySelector(".needed-after-owned")?.textContent || "0";
+    const remaining = Number(remainingText.replaceAll(",", "")) || 0;
+
+    if (!nonRecyclableMaterials.has(materialName)) {
+      total += remaining;
+    }
+  });
+
+  document.getElementById("recyclableTotal").textContent =
+    `♻️ Recyclable Materials Needed: ${total.toLocaleString()}`;
+}
 // ===============================
 // CRAFTABLE
 // ===============================
