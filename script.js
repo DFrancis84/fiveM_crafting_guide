@@ -14,7 +14,15 @@ const nonRecyclableMaterials = new Set([
   "Sulfur",
   "Gunpowder",
   "Golden Nugget",
-  "Copper Ore"
+  "Copper Ore",
+  "Tech Shavings",
+  "Super Cell Battery",
+  "Broken USB",
+  "Broken VPN",
+  "Radio",
+  "Steel Bar",
+  "Leather Hide",
+  "Sewing Thread"
 ]);
 
 // ===============================
