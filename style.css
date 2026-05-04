@@ -301,6 +301,46 @@ button:active {
   color: #facc15;
 }
 
+.materials-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.materials-header h2 {
+  margin: 0;
+}
+
+.mini-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+.owned-input {
+  width: 90px;
+  min-height: 34px;
+  padding: 6px 8px;
+  font-size: 14px;
+}
+
+.needed-after-owned {
+  color: #22c55e;
+  font-weight: 800;
+}
+
+.material-owned-row {
+  display: grid;
+  grid-template-columns: 1fr 90px auto;
+  gap: 10px;
+  align-items: center;
+}
+
 .muted {
   color: #94a3b8;
   font-size: 14px;
