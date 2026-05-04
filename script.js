@@ -41,8 +41,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const popup = document.getElementById("popup");
   if (popup) popup.style.display = "none";
 
-  ownedMaterials = JSON.parse(localStorage.getItem("ownedMaterials") || "{}");
-
   await loadData();
   buildEditorOptions();
   initDropdowns();
@@ -465,8 +463,6 @@ function renderList(id, data) {
       input.addEventListener("input", e => {
         const value = Number(e.target.value) || 0;
         ownedMaterials[name] = value;
-
-        localStorage.setItem("ownedMaterials", JSON.stringify(ownedMaterials));
 
         const newRemaining = Math.max(0, qty - value);
         output.textContent = newRemaining.toLocaleString();
