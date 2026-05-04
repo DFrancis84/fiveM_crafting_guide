@@ -27,6 +27,7 @@ let kits = {};
 let costMap = {};
 let craftQueue = [];
 let viewMode = "single";
+let ownedMaterials = {};
 
 let materialOptions = [];
 let componentOptions = [];
@@ -89,6 +90,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     addEditorRow("materialsList");
   });
 
+  document.getElementById("useOwnedMaterials").addEventListener("change", () => {
+    recalculateCurrentView();
+  });
+  
   document.getElementById("submitEditorBtn").addEventListener("click", submitItem);
   document.getElementById("closeEditorBtn").addEventListener("click", closeAddItem);
   document.getElementById("saveCostBtn").addEventListener("click", submitCostUpdate);
@@ -466,10 +471,45 @@ function renderList(id, data) {
     return;
   }
 
+  const useOwned = document.getElementById("useOwnedMaterials")?.checked;
+
   entries.forEach(([name, qty]) => {
     const row = document.createElement("div");
     row.className = "result-row";
-    row.innerHTML = `<span>${escapeHtml(name)}</span><strong>${qty.toLocaleString()}</strong>`;
+
+    if (id === "materials" && useOwned) {
+      const owned = Number(ownedMaterials[name]) || 0;
+      const remaining = Math.max(0, qty - owned);
+
+      row.classList.add("material-owned-row");
+
+      row.innerHTML = `
+        <span>${escapeHtml(name)}</span>
+
+        <input 
+          class="owned-input"
+          type="number"
+          min="0"
+          placeholder="Have"
+          value="${owned || ""}"
+          data-material="${escapeHtml(name)}"
+        >
+
+        <strong class="needed-after-owned">
+          ${remaining.toLocaleString()}
+        </strong>
+      `;
+
+      const input = row.querySelector(".owned-input");
+
+      input.addEventListener("input", e => {
+        ownedMaterials[name] = Number(e.target.value) || 0;
+        recalculateCurrentView();
+      });
+    } else {
+      row.innerHTML = `<span>${escapeHtml(name)}</span><strong>${qty.toLocaleString()}</strong>`;
+    }
+
     el.appendChild(row);
   });
 }
