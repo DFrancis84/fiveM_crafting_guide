@@ -267,10 +267,20 @@ function renderList(id, data) {
       row.className = "result-row material-owned-row";
 
       row.innerHTML = `
-        <span>${name}</span>
-        <input class="owned-input" type="number" value="${owned}">
-        <strong>${remaining}</strong>
-      `;
+        <span>${escapeHtml(name)}</span>
+
+        <input
+          class="owned-input"
+          type="number"
+          min="0"
+          value="${owned || ""}"
+          data-material="${escapeHtml(name)}"
+      >
+
+      <strong class="needed-after-owned">
+        ${remaining.toLocaleString()}
+      </strong>
+    `;
 
       row.querySelector("input").addEventListener("input", e => {
         ownedMaterials[name] = Number(e.target.value) || 0;
