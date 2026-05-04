@@ -63,9 +63,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.getElementById("ownedRecyclables").addEventListener("input", updateCraftableCount);
 
-  document.getElementById("useOwnedMaterials").addEventListener("change", () => {
-    recalculateCurrentView();
-  });
+  document.getElementById("useOwnedMaterials").addEventListener("change", recalculateCurrentView);
 
   document.getElementById("addQueueBtn").addEventListener("click", addSelectedItemToQueue);
   document.getElementById("openEditorBtn").addEventListener("click", openAddItem);
