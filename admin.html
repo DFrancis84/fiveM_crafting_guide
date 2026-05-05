@@ -25,22 +25,34 @@
       <div class="panel">
         <h2>🛠 Item Editor</h2>
 
-        <label>Edit Existing Item</label>
-        <select id="editItemSelect">
-          <option value="">New Item</option>
-        </select>
+        <div class="admin-form-grid">
+          <div class="form-group">
+            <label>Edit Existing Item</label>
+            <select id="editItemSelect">
+              <option value="">New Item</option>
+            </select>
+          </div>
 
-        <label>Category</label>
-        <input id="newCategory" placeholder="Category" />
+          <div class="form-group">
+            <label>Category</label>
+            <input id="newCategory" placeholder="Category" />
+          </div>
 
-        <label>Item Name</label>
-        <input id="newItem" placeholder="Item Name" />
+          <div class="form-group span-2">
+            <label>Item Name</label>
+            <input id="newItem" placeholder="Item Name" />
+          </div>
 
-        <label>XP Per Craft</label>
-        <input id="newXP" type="number" placeholder="XP" />
+          <div class="form-group">
+            <label>XP</label>
+            <input id="newXP" type="number" placeholder="XP" />
+          </div>
 
-        <label>StopXP</label>
-        <input id="newStopXP" type="number" placeholder="Example: 1000 = Level 10" />
+          <div class="form-group">
+            <label>StopXP</label>
+            <input id="newStopXP" type="number" placeholder="1000 = Level 10" />
+          </div>
+        </div>
 
         <h4>🧩 Components</h4>
         <div id="componentsList"></div>
