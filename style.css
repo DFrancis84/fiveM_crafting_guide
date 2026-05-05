@@ -422,6 +422,30 @@ button:active {
   margin: 18px 0;
 }
 
+.admin-topbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.nav-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  border-radius: 10px;
+  border: 1px solid #334155;
+  padding: 10px;
+  background: #0f172a;
+  color: #e5e7eb;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.small-modal {
+  width: min(420px, 100%);
+}
+
 @media (max-width: 760px) {
   .app {
     padding: 12px;
