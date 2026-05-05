@@ -8,7 +8,20 @@ const nonRecyclableMaterials = new Set([
   "Titanium",
   "Circuit Board",
   "Control Chip",
-  "Power Supply"
+  "Power Supply",
+  "Charcoal",
+  "Sulfur",
+  "Gunpowder",
+  "Golden Nugget",
+  "Copper Ore",
+  "Tech Shavings",
+  "Super Cell Battery",
+  "Broken USB",
+  "Broken VPN",
+  "Radio",
+  "Steel Bar",
+  "Leather Hide",
+  "Sewing Thread"
 ]);
 
 // ===============================
