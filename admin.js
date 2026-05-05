@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   await loadData();
   buildEditorOptions();
+  populateCategoryOptions();
   populateEditItemSelect();
   populateCostEditor();
   resetEditor();
@@ -358,6 +359,9 @@ async function submitCostUpdate() {
 async function refreshAdminData() {
   await loadData();
   buildEditorOptions();
+
+  populateCategoryOptions();   // 👈 ADD THIS LINE
+
   populateEditItemSelect();
   populateCostEditor();
 }
