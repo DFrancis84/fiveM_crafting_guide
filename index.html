@@ -17,23 +17,51 @@
     <section class="panel">
       <h2>🎯 Craft Selector</h2>
 
-      <div class="controls">
-        <select id="categorySelect">
-          <option value="">Select Category</option>
-        </select>
+        <div class="controls">
+          <select id="categorySelect">
+            <option value="">Select Category</option>
+          </select>
 
-        <select id="itemSelect" disabled>
-          <option value="">Select Item</option>
-        </select>
+          <select id="itemSelect" disabled>
+            <option value="">Select Item</option>
+          </select>
 
-        <input id="quantity" type="number" value="1" min="1" />
+          <input id="quantity" type="number" value="1" min="1" />
 
-        <input id="ownedRecyclables" type="number" min="0" placeholder="Recyclables owned" />
+          <input id="ownedRecyclables" type="number" min="0" placeholder="Recyclables owned" />
 
-        <div id="craftableCount">Can craft: 0</div>
+          <div id="craftableCount">Can craft: 0</div>
 
-        <button id="addQueueBtn">➕ Add Item</button>
-        <button id="openEditorBtn">⚙️ Admin Panel</button>
+          <button id="addQueueBtn">➕ Add Item</button>
+          <button id="openEditorBtn">⚙️ Admin Panel</button>
+        </div>
+
+        <div class="selector-options">
+          <label class="xp-toggle">
+            <span>Include Component XP</span>
+            <span class="switch">
+            <input id="includeComponentXP" type="checkbox" checked>
+            <span class="slider"></span>
+            </span>
+          </label>
+
+          <div class="xp-boost-toggle">
+          <span>Fixer XP Boost</span>
+
+          <div class="boost-options">
+            <input type="radio" id="boost0" name="fixerBoost" value="0" checked>
+            <label for="boost0">None</label>
+
+            <input type="radio" id="boost1" name="fixerBoost" value="1">
+            <label for="boost1">+1</label>
+
+            <input type="radio" id="boost2" name="fixerBoost" value="2">
+            <label for="boost2">+2</label>
+
+            <input type="radio" id="boost3" name="fixerBoost" value="3">
+            <label for="boost3">+3</label>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -48,17 +76,6 @@
       <button id="singleViewBtn">Selected Item</button>
       <button id="queueViewBtn">Craft Queue</button>
     </div>
-
-    <label class="xp-toggle">
-      <span>Include Component XP</span>
-      <span class="switch">
-        <input id="includeComponentXP" type="checkbox" checked>
-        <span class="slider"></span>
-      </span>
-    </label>
-
-    <div class="xp-boost-toggle">
-      <span>Fixer XP Boost</span>
 
       <div class="boost-options">
         <input type="radio" id="boost0" name="fixerBoost" value="0" checked>
