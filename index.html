@@ -165,6 +165,20 @@
     </div>
   </div>
 
+  <div id="adminAuthModal" class="modal-backdrop">
+    <div class="modal small-modal">
+      <h3>🔐 Admin Authentication</h3>
+
+      <label>Authenticator Code</label>
+      <input id="adminAuthCode" maxlength="6" inputmode="numeric" placeholder="6-digit code" />
+
+      <div class="modal-actions">
+        <button id="submitAdminAuthBtn">Unlock Admin</button>
+        <button class="danger-btn" id="closeAdminAuthBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+  
   <script src="script.js"></script>
 </body>
 </html>
