@@ -212,6 +212,17 @@ function buildOptions(list, selected = "") {
   `).join("");
 }
 
+function populateCategoryOptions() {
+  const datalist = document.getElementById("categoryOptions");
+  datalist.innerHTML = "";
+
+  categoryOptions.forEach(cat => {
+    const opt = document.createElement("option");
+    opt.value = cat;
+    datalist.appendChild(opt);
+  });
+}
+
 function getEditorRows(containerId) {
   const rows = Array.from(document.querySelectorAll(`#${containerId} .editor-row`));
 
