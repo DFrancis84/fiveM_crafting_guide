@@ -113,6 +113,18 @@ button:active {
   white-space: nowrap;
 }
 
+.selector-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.selector-options .xp-toggle,
+.selector-options .xp-boost-toggle {
+  margin-bottom: 0;
+}
+
 .view-toggle {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -368,6 +380,10 @@ button:active {
   padding: 18px;
 }
 
+.small-modal {
+  width: min(420px, 100%);
+}
+
 .modal h3 {
   margin: 0 0 14px;
   color: #38bdf8;
@@ -391,24 +407,6 @@ button:active {
   margin-bottom: 8px;
 }
 
-.editor-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 100px 46px;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.editor-row button {
-  background: #ef4444;
-  color: white;
-  padding: 0;
-}
-
-.secondary-btn {
-  background: #0f172a;
-  color: #e5e7eb;
-}
-
 .modal-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -416,10 +414,9 @@ button:active {
   margin-top: 12px;
 }
 
-.modal-divider {
-  border: none;
-  border-top: 1px solid #334155;
-  margin: 18px 0;
+.secondary-btn {
+  background: #0f172a;
+  color: #e5e7eb;
 }
 
 .admin-topbar {
@@ -440,10 +437,6 @@ button:active {
   color: #e5e7eb;
   text-decoration: none;
   font-weight: 700;
-}
-
-.small-modal {
-  width: min(420px, 100%);
 }
 
 .admin-form-grid {
@@ -477,34 +470,6 @@ button:active {
   grid-column: span 2;
 }
 
-@media (max-width: 700px) {
-  .admin-form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .span-2 {
-    grid-column: span 1;
-  }
-}
-
-.selector-options {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 14px;
-}
-
-.selector-options .xp-toggle,
-.selector-options .xp-boost-toggle {
-  margin-bottom: 0;
-}
-
-@media (max-width: 760px) {
-  .selector-options {
-    grid-template-columns: 1fr;
-  }
-}
-
 @media (max-width: 760px) {
   .app {
     padding: 12px;
@@ -512,7 +477,8 @@ button:active {
 
   .controls,
   .output-grid,
-  .view-toggle {
+  .view-toggle,
+  .selector-options {
     grid-template-columns: 1fr;
   }
 
@@ -549,15 +515,17 @@ button:active {
     grid-template-columns: 1fr 90px 70px !important;
   }
 
-  .editor-row {
+  .modal-actions,
+  .admin-topbar,
+  .admin-form-grid {
     grid-template-columns: 1fr;
   }
 
-  .editor-row button {
-    min-height: 38px;
+  .admin-topbar {
+    flex-direction: column;
   }
 
-  .modal-actions {
-    grid-template-columns: 1fr;
+  .span-2 {
+    grid-column: span 1;
   }
-}
+}  
