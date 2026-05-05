@@ -1,1 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crafting Admin</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
 
+<body>
+  <main class="app">
+    <header class="header">
+      <h1>🔐 Crafting Admin</h1>
+      <p>Add, update, delete catalogue items, and manage costs</p>
+    </header>
+
+    <section class="panel">
+      <div class="admin-topbar">
+        <a href="index.html" class="nav-button">⬅ Back to Crafting Console</a>
+        <button id="logoutAdminBtn" class="danger-btn">Logout</button>
+      </div>
+    </section>
+
+    <section class="output-grid">
+      <div class="panel">
+        <h2>🛠 Item Editor</h2>
+
+        <label>Edit Existing Item</label>
+        <select id="editItemSelect">
+          <option value="">New Item</option>
+        </select>
+
+        <label>Category</label>
+        <input id="newCategory" placeholder="Category" />
+
+        <label>Item Name</label>
+        <input id="newItem" placeholder="Item Name" />
+
+        <label>XP Per Craft</label>
+        <input id="newXP" type="number" placeholder="XP" />
+
+        <label>StopXP</label>
+        <input id="newStopXP" type="number" placeholder="Example: 1000 = Level 10" />
+
+        <h4>🧩 Components</h4>
+        <div id="componentsList"></div>
+        <button type="button" class="secondary-btn" id="addComponentRowBtn">
+          ➕ Add Component
+        </button>
+
+        <h4>📦 Materials</h4>
+        <div id="materialsList"></div>
+        <button type="button" class="secondary-btn" id="addMaterialRowBtn">
+          ➕ Add Material
+        </button>
+
+        <div class="modal-actions">
+          <button id="submitEditorBtn">💾 Save Item</button>
+          <button id="deleteItemBtn" class="danger-btn">🗑 Delete Item</button>
+        </div>
+
+        <button id="resetEditorBtn" class="secondary-btn">Clear / New Item</button>
+      </div>
+
+      <div class="panel">
+        <h2>💰 Cost Editor</h2>
+
+        <label>Material</label>
+        <select id="costMaterialSelect"></select>
+
+        <label>Cost Per</label>
+        <input id="costPerInput" type="number" placeholder="Cost Per" />
+
+        <button id="saveCostBtn" class="secondary-btn">
+          💾 Save Cost
+        </button>
+
+        <div class="section-divider"></div>
+
+        <h2>📋 Current Item Preview</h2>
+        <div id="adminPreview" class="summary-box">
+          Select an item to preview details.
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>
