@@ -487,6 +487,24 @@ button:active {
   }
 }
 
+.selector-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.selector-options .xp-toggle,
+.selector-options .xp-boost-toggle {
+  margin-bottom: 0;
+}
+
+@media (max-width: 760px) {
+  .selector-options {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 760px) {
   .app {
     padding: 12px;
