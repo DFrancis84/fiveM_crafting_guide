@@ -17,35 +17,35 @@
     <section class="panel">
       <h2>🎯 Craft Selector</h2>
 
-        <div class="controls">
-          <select id="categorySelect">
-            <option value="">Select Category</option>
-          </select>
+      <div class="controls">
+        <select id="categorySelect">
+          <option value="">Select Category</option>
+        </select>
 
-          <select id="itemSelect" disabled>
-            <option value="">Select Item</option>
-          </select>
+        <select id="itemSelect" disabled>
+          <option value="">Select Item</option>
+        </select>
 
-          <input id="quantity" type="number" value="1" min="1" />
+        <input id="quantity" type="number" value="1" min="1" />
 
-          <input id="ownedRecyclables" type="number" min="0" placeholder="Recyclables owned" />
+        <input id="ownedRecyclables" type="number" min="0" placeholder="Recyclables owned" />
 
-          <div id="craftableCount">Can craft: 0</div>
+        <div id="craftableCount">Can craft: 0</div>
 
-          <button id="addQueueBtn">➕ Add Item</button>
-          <button id="openEditorBtn">⚙️ Admin Panel</button>
-        </div>
+        <button id="addQueueBtn">➕ Add Item</button>
+        <button id="openEditorBtn">⚙️ Admin Panel</button>
+      </div>
 
-        <div class="selector-options">
-          <label class="xp-toggle">
-            <span>Include Component XP</span>
-            <span class="switch">
+      <div class="selector-options">
+        <label class="xp-toggle">
+          <span>Include Component XP</span>
+          <span class="switch">
             <input id="includeComponentXP" type="checkbox" checked>
             <span class="slider"></span>
-            </span>
-          </label>
+          </span>
+        </label>
 
-          <div class="xp-boost-toggle">
+        <div class="xp-boost-toggle">
           <span>Fixer XP Boost</span>
 
           <div class="boost-options">
@@ -75,21 +75,6 @@
     <div class="view-toggle">
       <button id="singleViewBtn">Selected Item</button>
       <button id="queueViewBtn">Craft Queue</button>
-    </div>
-
-      <div class="boost-options">
-        <input type="radio" id="boost0" name="fixerBoost" value="0" checked>
-        <label for="boost0">None</label>
-
-        <input type="radio" id="boost1" name="fixerBoost" value="1">
-        <label for="boost1">+1</label>
-
-        <input type="radio" id="boost2" name="fixerBoost" value="2">
-        <label for="boost2">+2</label>
-
-        <input type="radio" id="boost3" name="fixerBoost" value="3">
-        <label for="boost3">+3</label>
-      </div>
     </div>
 
     <section class="output-grid">
@@ -125,65 +110,6 @@
     </section>
   </main>
 
-  <!--
-  <div id="popup" class="modal-backdrop">
-    <div class="modal">
-      <h3>🛠 Crafting Editor</h3>
-
-      <label>Edit Existing Item</label>
-      <select id="editItemSelect">
-        <option value="">New Item</option>
-      </select>
-
-      <label>Category</label>
-      <input id="newCategory" placeholder="Category" />
-
-      <label>Item Name</label>
-      <input id="newItem" placeholder="Item Name" />
-
-      <label>XP Per Craft</label>
-      <input id="newXP" type="number" placeholder="XP" />
-
-      <label>StopXP</label>
-      <input id="newStopXP" type="number" placeholder="StopXP, example 1000 = Level 10" />
-
-      <h4>🧩 Components</h4>
-      <div id="componentsList"></div>
-      <button type="button" class="secondary-btn" id="addComponentRowBtn">
-        ➕ Add Component
-      </button>
-
-      <h4>📦 Materials</h4>
-      <div id="materialsList"></div>
-      <button type="button" class="secondary-btn" id="addMaterialRowBtn">
-        ➕ Add Material
-      </button>
-
-      <label>Authenticator Code</label>
-      <input id="authCode" maxlength="6" inputmode="numeric" placeholder="6-digit code" />
-
-      <div class="modal-actions">
-        <button id="submitEditorBtn">💾 Save Item</button>
-        <button class="danger-btn" id="closeEditorBtn">Cancel</button>
-      </div>
-
-      <hr class="modal-divider">
-
-      <h3>💰 Cost Editor</h3>
-
-      <label>Material</label>
-      <select id="costMaterialSelect"></select>
-
-      <label>Cost Per</label>
-      <input id="costPerInput" type="number" placeholder="Cost Per" />
-
-      <button id="saveCostBtn" class="secondary-btn">
-        💾 Save Cost
-      </button>
-    </div>
-  </div>
-  -->
-
   <div id="adminAuthModal" class="modal-backdrop">
     <div class="modal small-modal">
       <h3>🔐 Admin Authentication</h3>
@@ -197,7 +123,7 @@
       </div>
     </div>
   </div>
-  
+
   <script src="script.js"></script>
 </body>
 </html>
