@@ -3,7 +3,7 @@
 // ===============================
 
 const DATA_ENDPOINT = "https://lucidcrafting.devinfrancis84.workers.dev/api/data";
-const SAVE_ENDPOINT = "https://lucidcrafting.devinfrancis84.workers.dev";
+const SAVE_ENDPOINT = "https://lucidcrafting.devinfrancis84.workers.dev/api/save";
 
 const nonRecyclableMaterials = new Set([
   "Titanium",
