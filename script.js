@@ -66,8 +66,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   document.getElementById("addQueueBtn").addEventListener("click", addSelectedItemToQueue);
-  document.getElementById("openEditorBtn").addEventListener("click", openAddItem);
-
+  
+  document.getElementById("openEditorBtn").addEventListener("click", openAdminAuth);
+  document.getElementById("submitAdminAuthBtn").addEventListener("click", submitAdminAuth);
+  document.getElementById("closeAdminAuthBtn").addEventListener("click", closeAdminAuth);
+  
   document.getElementById("singleViewBtn").addEventListener("click", () => setViewMode("single"));
   document.getElementById("queueViewBtn").addEventListener("click", () => setViewMode("queue"));
 
@@ -215,6 +218,45 @@ function addSelectedItemToQueue() {
 
   renderCraftQueue();
   setViewMode("queue");
+}
+
+function openAdminAuth() {
+  document.getElementById("adminAuthModal").style.display = "flex";
+  document.getElementById("adminAuthCode").value = "";
+}
+
+function closeAdminAuth() {
+  document.getElementById("adminAuthModal").style.display = "none";
+}
+
+async function submitAdminAuth() {
+  const code = document.getElementById("adminAuthCode").value.trim();
+
+  if (!code) {
+    alert("Authenticator code is required.");
+    return;
+  }
+
+  const res = await fetch(SAVE_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action: "verifyCode",
+      code
+    })
+  });
+
+  const result = await res.json();
+
+  if (!res.ok || !result.ok) {
+    alert(`❌ ${result.error || "Invalid code"}`);
+    return;
+  }
+
+  sessionStorage.setItem("adminAuthed", "true");
+  sessionStorage.setItem("adminCode", code);
+
+  window.location.href = "admin.html";
 }
 
 function removeFromQueue(index) {
