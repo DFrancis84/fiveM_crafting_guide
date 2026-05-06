@@ -32,17 +32,11 @@ let costMap = {};
 let craftQueue = [];
 let viewMode = "single";
 
-let materialOptions = [];
-let componentOptions = [];
-let categoryOptions = [];
 let ownedMaterials = {};
+let ownedComponents = {};
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const popup = document.getElementById("popup");
-  if (popup) popup.style.display = "none";
-
   await loadData();
-  buildEditorOptions();
   initDropdowns();
   renderCraftQueue();
 
@@ -65,12 +59,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateOwnedSummaryRecyclables();
   });
 
+  document.getElementById("useOwnedComponents").addEventListener("change", recalculateCurrentView);
+
   document.getElementById("addQueueBtn").addEventListener("click", addSelectedItemToQueue);
-  
   document.getElementById("openEditorBtn").addEventListener("click", openAdminAuth);
+
   document.getElementById("submitAdminAuthBtn").addEventListener("click", submitAdminAuth);
   document.getElementById("closeAdminAuthBtn").addEventListener("click", closeAdminAuth);
-  
+
   document.getElementById("singleViewBtn").addEventListener("click", () => setViewMode("single"));
   document.getElementById("queueViewBtn").addEventListener("click", () => setViewMode("queue"));
 
@@ -82,18 +78,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.querySelectorAll('input[name="fixerBoost"]').forEach(input => {
     input.addEventListener("change", recalculateCurrentView);
   });
-
-  document.getElementById("addComponentRowBtn").addEventListener("click", () => {
-    addEditorRow("componentsList");
-  });
-
-  document.getElementById("addMaterialRowBtn").addEventListener("click", () => {
-    addEditorRow("materialsList");
-  });
-
-  document.getElementById("submitEditorBtn").addEventListener("click", submitItem);
-  document.getElementById("closeEditorBtn").addEventListener("click", closeAddItem);
-  document.getElementById("saveCostBtn").addEventListener("click", submitCostUpdate);
 
   setViewMode("single");
 });
@@ -126,34 +110,18 @@ function buildCategoriesFromItems(itemMap) {
   return fallback;
 }
 
-function buildEditorOptions() {
-  const materialSet = new Set();
-  const categorySet = new Set(Object.keys(categories));
-
-  Object.values(items).forEach(item => {
-    if (item.category) categorySet.add(item.category);
-    Object.keys(item.materials || {}).forEach(mat => materialSet.add(mat));
-  });
-
-  Object.keys(costMap).forEach(mat => {
-    if (mat !== "Recyclable Materials") materialSet.add(mat);
-  });
-
-  materialOptions = Array.from(materialSet).sort();
-  componentOptions = Object.keys(items).sort();
-  categoryOptions = Array.from(categorySet).sort();
-}
-
 function initDropdowns() {
   const categorySelect = document.getElementById("categorySelect");
   categorySelect.innerHTML = `<option value="">Select Category</option>`;
 
-  categoryOptions.forEach(category => {
+  Object.keys(categories).sort().forEach(category => {
     const opt = document.createElement("option");
     opt.value = category;
     opt.textContent = category;
     categorySelect.appendChild(opt);
   });
+
+  const categoryOptions = Object.keys(categories).sort();
 
   if (categoryOptions.length > 0) {
     categorySelect.value = categoryOptions[0];
@@ -220,45 +188,6 @@ function addSelectedItemToQueue() {
   setViewMode("queue");
 }
 
-function openAdminAuth() {
-  document.getElementById("adminAuthModal").style.display = "flex";
-  document.getElementById("adminAuthCode").value = "";
-}
-
-function closeAdminAuth() {
-  document.getElementById("adminAuthModal").style.display = "none";
-}
-
-async function submitAdminAuth() {
-  const code = document.getElementById("adminAuthCode").value.trim();
-
-  if (!code) {
-    alert("Authenticator code is required.");
-    return;
-  }
-
-  const res = await fetch(SAVE_ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      action: "verifyCode",
-      code
-    })
-  });
-
-  const result = await res.json();
-
-  if (!res.ok || !result.ok) {
-    alert(`❌ ${result.error || "Invalid code"}`);
-    return;
-  }
-
-  sessionStorage.setItem("adminAuthed", "true");
-  sessionStorage.setItem("adminCode", code);
-
-  window.location.href = "admin.html";
-}
-
 function removeFromQueue(index) {
   craftQueue.splice(index, 1);
   renderCraftQueue();
@@ -306,7 +235,7 @@ function calculateSingle() {
   const includeComponentXP = document.getElementById("includeComponentXP").checked;
 
   const components = getComponents(item, qty);
-  const materials = getMaterials(item, qty);
+  const materials = getMaterials(item, qty, {}, getOwnedComponentBudget());
   const xp = getXP(item, qty, includeComponentXP);
   const recyclable = getRecyclableTotal(materials);
   const cost = getCraftCost(materials);
@@ -320,12 +249,13 @@ function calculateQueue() {
   let totalMaterials = {};
   let totalXP = 0;
   let maxStopLevel = 0;
+  const ownedBudget = getOwnedComponentBudget();
 
   const includeComponentXP = document.getElementById("includeComponentXP").checked;
 
   craftQueue.forEach(entry => {
     const components = getComponents(entry.item, entry.qty);
-    const materials = getMaterials(entry.item, entry.qty);
+    const materials = getMaterials(entry.item, entry.qty, {}, ownedBudget);
     const xp = getXP(entry.item, entry.qty, includeComponentXP);
     const stopLevel = (items[entry.item]?.stopXP || 0) / 100;
 
@@ -340,6 +270,14 @@ function calculateQueue() {
   const cost = getCraftCost(totalMaterials);
 
   updateOutput(totalComponents, totalMaterials, totalXP, recyclable, cost, maxStopLevel);
+}
+
+function getOwnedComponentBudget() {
+  const useOwned = document.getElementById("useOwnedComponents")?.checked;
+
+  if (!useOwned) return {};
+
+  return { ...ownedComponents };
 }
 
 function mergeTotals(target, source) {
@@ -361,18 +299,27 @@ function getComponents(item, qty, result = {}) {
   return result;
 }
 
-function getMaterials(item, qty, result = {}) {
+function getMaterials(item, qty, result = {}, ownedComponentBudget = {}) {
   const itemData = items[item];
-  if (!itemData) return result;
+  if (!itemData || qty <= 0) return result;
 
   Object.entries(itemData.materials || {}).forEach(([mat, val]) => {
     result[mat] = (result[mat] || 0) + val * qty;
   });
 
   const comps = recipes[item];
+
   if (comps) {
     comps.forEach(c => {
-      getMaterials(c.component, c.qty * qty, result);
+      let neededQty = c.qty * qty;
+
+      if (ownedComponentBudget[c.component] > 0) {
+        const usedOwned = Math.min(neededQty, ownedComponentBudget[c.component]);
+        neededQty -= usedOwned;
+        ownedComponentBudget[c.component] -= usedOwned;
+      }
+
+      getMaterials(c.component, neededQty, result, ownedComponentBudget);
     });
   }
 
@@ -391,6 +338,7 @@ function getXP(item, qty, includeComponents = true) {
   if (!includeComponents) return total;
 
   const comps = recipes[item];
+
   if (comps) {
     comps.forEach(c => {
       total += getXP(c.component, c.qty * qty, true);
@@ -456,12 +404,40 @@ function renderList(id, data) {
     return;
   }
 
-  const useOwned = document.getElementById("useOwnedMaterials")?.checked;
+  const useOwnedMaterials = document.getElementById("useOwnedMaterials")?.checked;
+  const useOwnedComponents = document.getElementById("useOwnedComponents")?.checked;
 
   entries.forEach(([name, qty]) => {
     const row = document.createElement("div");
 
-    if (id === "materials" && useOwned) {
+    if (id === "components" && useOwnedComponents) {
+      const owned = Number(ownedComponents[name]) || 0;
+      const remaining = Math.max(0, qty - owned);
+
+      row.className = "result-row material-owned-row";
+
+      row.innerHTML = `
+        <span>${escapeHtml(name)}</span>
+
+        <input
+          class="owned-input"
+          type="number"
+          min="0"
+          placeholder="Have"
+          value="${owned || ""}"
+          data-component="${escapeHtml(name)}"
+        >
+
+        <strong class="needed-after-owned">${remaining.toLocaleString()}</strong>
+      `;
+
+      const input = row.querySelector(".owned-input");
+
+      input.addEventListener("change", e => {
+        ownedComponents[name] = Number(e.target.value) || 0;
+        recalculateCurrentView();
+      });
+    } else if (id === "materials" && useOwnedMaterials) {
       const owned = Number(ownedMaterials[name]) || 0;
       const remaining = Math.max(0, qty - owned);
 
@@ -539,7 +515,7 @@ function updateCraftableCount() {
     return;
   }
 
-  const materialsForOne = getMaterials(item, 1);
+  const materialsForOne = getMaterials(item, 1, {}, getOwnedComponentBudget());
   const recyclableNeeded = getRecyclableTotal(materialsForOne);
 
   if (recyclableNeeded <= 0) {
@@ -551,225 +527,43 @@ function updateCraftableCount() {
   output.textContent = `Can craft: ${craftable.toLocaleString()}`;
 }
 
-function openAddItem() {
-  document.getElementById("popup").style.display = "flex";
-  populateEditItemSelect();
-  populateCostEditor();
-  resetEditor();
+function openAdminAuth() {
+  document.getElementById("adminAuthModal").style.display = "flex";
+  document.getElementById("adminAuthCode").value = "";
 }
 
-function closeAddItem() {
-  document.getElementById("popup").style.display = "none";
+function closeAdminAuth() {
+  document.getElementById("adminAuthModal").style.display = "none";
 }
 
-function populateEditItemSelect() {
-  const select = document.getElementById("editItemSelect");
-  select.innerHTML = `<option value="">New Item</option>`;
+async function submitAdminAuth() {
+  const code = document.getElementById("adminAuthCode").value.trim();
 
-  Object.keys(items).sort().forEach(item => {
-    const opt = document.createElement("option");
-    opt.value = item;
-    opt.textContent = item;
-    select.appendChild(opt);
-  });
-
-  select.onchange = () => {
-    if (select.value) loadItemIntoEditor(select.value);
-    else resetEditor();
-  };
-}
-
-function resetEditor() {
-  document.getElementById("newCategory").value = "";
-  document.getElementById("newItem").value = "";
-  document.getElementById("newXP").value = "";
-  document.getElementById("newStopXP").value = "";
-  document.getElementById("componentsList").innerHTML = "";
-  document.getElementById("materialsList").innerHTML = "";
-  document.getElementById("authCode").value = "";
-}
-
-function loadItemIntoEditor(itemName) {
-  resetEditor();
-
-  document.getElementById("newCategory").value = items[itemName]?.category || "";
-  document.getElementById("newItem").value = itemName;
-  document.getElementById("newXP").value = items[itemName]?.xp || 0;
-  document.getElementById("newStopXP").value = items[itemName]?.stopXP || 0;
-
-  Object.entries(items[itemName]?.materials || {}).forEach(([name, qty]) => {
-    addEditorRow("materialsList", name, qty);
-  });
-
-  (recipes[itemName] || []).forEach(component => {
-    addEditorRow("componentsList", component.component, component.qty);
-  });
-}
-
-function addEditorRow(containerId, name = "", qty = "") {
-  const container = document.getElementById(containerId);
-
-  const options = containerId === "materialsList"
-    ? materialOptions
-    : componentOptions;
-
-  const row = document.createElement("div");
-  row.className = "editor-row";
-
-  row.innerHTML = `
-    <select class="entry-name">
-      ${buildOptions(options, name)}
-      <option value="__custom__" ${!options.includes(name) && name ? "selected" : ""}>Custom...</option>
-    </select>
-
-    <input class="custom-entry-name" placeholder="Custom name" value="${!options.includes(name) ? escapeHtml(name) : ""}" style="display:${!options.includes(name) && name ? "block" : "none"};">
-
-    <input class="entry-qty" type="number" min="0" placeholder="Qty" value="${qty}">
-    <button type="button" onclick="this.parentElement.remove()">✖</button>
-  `;
-
-  const select = row.querySelector(".entry-name");
-  const customInput = row.querySelector(".custom-entry-name");
-
-  select.addEventListener("change", () => {
-    customInput.style.display = select.value === "__custom__" ? "block" : "none";
-  });
-
-  container.appendChild(row);
-}
-
-function buildOptions(list, selected = "") {
-  return list.map(item => `
-    <option value="${escapeHtml(item)}" ${item === selected ? "selected" : ""}>
-      ${escapeHtml(item)}
-    </option>
-  `).join("");
-}
-
-function getEditorRows(containerId) {
-  const rows = Array.from(document.querySelectorAll(`#${containerId} .editor-row`));
-
-  const parsed = rows.map(row => {
-    const selected = row.querySelector(".entry-name").value;
-    const custom = row.querySelector(".custom-entry-name").value.trim();
-    const qty = Number(row.querySelector(".entry-qty").value) || 0;
-
-    const name = selected === "__custom__" ? custom : selected;
-
-    return { name, qty };
-  }).filter(row => row.name && row.qty > 0);
-
-  const merged = {};
-
-  parsed.forEach(row => {
-    merged[row.name] = (merged[row.name] || 0) + row.qty;
-  });
-
-  return Object.entries(merged).map(([name, qty]) => ({ name, qty }));
-}
-
-async function submitItem() {
-  const authCode = document.getElementById("authCode").value.trim();
-
-  if (!authCode) {
+  if (!code) {
     alert("Authenticator code is required.");
     return;
   }
 
-  const payload = {
-    action: "updateItem",
-    category: document.getElementById("newCategory").value.trim() || "Other",
-    item: document.getElementById("newItem").value.trim(),
-    xp: Number(document.getElementById("newXP").value) || 0,
-    stopXP: Number(document.getElementById("newStopXP").value) || 0,
-    components: getEditorRows("componentsList"),
-    materials: getEditorRows("materialsList"),
-    code: authCode
-  };
-
-  if (!payload.item) {
-    alert("Item name is required.");
-    return;
-  }
-
   const res = await fetch(SAVE_ENDPOINT, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
+    body: JSON.stringify({
+      action: "verifyCode",
+      code
+    })
   });
 
   const result = await res.json();
 
   if (!res.ok || !result.ok) {
-    alert(`❌ ${result.error || "Save failed"}`);
+    alert(`❌ ${result.error || "Invalid code"}`);
     return;
   }
 
-  alert("✅ Item saved");
-  closeAddItem();
+  sessionStorage.setItem("adminAuthed", "true");
+  sessionStorage.setItem("adminCode", code);
 
-  await loadData();
-  buildEditorOptions();
-  initDropdowns();
-  renderCraftQueue();
-  recalculateCurrentView();
-}
-
-function populateCostEditor() {
-  const select = document.getElementById("costMaterialSelect");
-  select.innerHTML = "";
-
-  Object.keys(costMap).sort().forEach(material => {
-    const opt = document.createElement("option");
-    opt.value = material;
-    opt.textContent = material;
-    select.appendChild(opt);
-  });
-
-  if (select.options.length > 0) {
-    select.selectedIndex = 0;
-    document.getElementById("costPerInput").value = costMap[select.value] || 0;
-  }
-
-  select.onchange = () => {
-    document.getElementById("costPerInput").value = costMap[select.value] || 0;
-  };
-}
-
-async function submitCostUpdate() {
-  const authCode = document.getElementById("authCode").value.trim();
-
-  if (!authCode) {
-    alert("Authenticator code is required to update costs.");
-    return;
-  }
-
-  const payload = {
-    action: "updateCost",
-    material: document.getElementById("costMaterialSelect").value,
-    costPer: Number(document.getElementById("costPerInput").value) || 0,
-    code: authCode
-  };
-
-  const res = await fetch(SAVE_ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-
-  const result = await res.json();
-
-  if (!res.ok || !result.ok) {
-    alert(`❌ ${result.error || "Cost update failed"}`);
-    return;
-  }
-
-  alert("✅ Cost updated");
-
-  await loadData();
-  buildEditorOptions();
-  populateCostEditor();
-  recalculateCurrentView();
+  window.location.href = "admin.html";
 }
 
 function escapeHtml(value) {
