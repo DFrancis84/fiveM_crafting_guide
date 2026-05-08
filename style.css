@@ -622,6 +622,16 @@ button:active {
   color: var(--cyan);
 }
 
+.bp-close-row {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.bp-close-row button {
+  width: 220px;
+}
+
 @media (max-width: 760px) {
   .app {
     padding: 12px;
