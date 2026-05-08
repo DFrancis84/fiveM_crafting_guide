@@ -12,6 +12,9 @@
     <header class="header">
       <h1>🛠 Crafting Console</h1>
       <p>Plan crafts, materials, XP, and cost</p>
+      <button id="openBlueprintsBtn" class="secondary-btn blueprint-top-btn">
+        📘 Blueprints
+      </button>
     </header>
 
     <section class="panel">
@@ -134,7 +137,24 @@
       </div>
     </div>
   </div>
+  
+  <div id="blueprintsModal" class="modal-backdrop">
+    <div class="modal">
+      <h3>📘 Blueprint Tracker</h3>
 
+      <div class="bp-tabs">
+        <button id="bpLearnedTab" class="active" type="button">Learned</button>
+        <button id="bpNeededTab" type="button">Needed</button>
+      </div>
+
+      <div id="blueprintList" class="bp-list"></div>
+
+      <div class="modal-actions">
+        <button id="closeBlueprintsBtn" class="danger-btn" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+  
   <script src="script.js"></script>
 </body>
 </html>
