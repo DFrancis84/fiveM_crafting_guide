@@ -32,6 +32,9 @@ let costMap = {};
 let craftQueue = [];
 let viewMode = "single";
 
+let blueprints = { learned: [], needed: [] };
+let blueprintView = "learned";
+
 let ownedMaterials = {};
 let ownedComponents = {};
 
@@ -74,7 +77,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     localStorage.setItem("includeComponentXP", e.target.checked);
     recalculateCurrentView();
   });
+  
+  document.getElementById("openBlueprintsBtn").addEventListener("click", openBlueprintsModal);
+  document.getElementById("closeBlueprintsBtn").addEventListener("click", closeBlueprintsModal);
 
+  document.getElementById("bpLearnedTab").addEventListener("click", () => {
+    blueprintView = "learned";
+    renderBlueprints();
+  });
+  document.getElementById("bpNeededTab").addEventListener("click", () => {
+    blueprintView = "needed";
+    renderBlueprints();
+  });
+  
   document.querySelectorAll('input[name="fixerBoost"]').forEach(input => {
     input.addEventListener("change", recalculateCurrentView);
   });
@@ -95,6 +110,7 @@ async function loadData() {
   recipes = data.recipes || {};
   kits = data.kits || {};
   costMap = data.costs || {};
+  blueprints = data.blueprints || { learned: [], needed: [] };
 }
 
 function buildCategoriesFromItems(itemMap) {
@@ -564,6 +580,39 @@ async function submitAdminAuth() {
   sessionStorage.setItem("adminCode", code);
 
   window.location.href = "admin.html";
+}
+
+function openBlueprintsModal() {
+  blueprintView = "learned";
+  document.getElementById("blueprintsModal").style.display = "flex";
+  renderBlueprints();
+}
+
+function closeBlueprintsModal() {
+  document.getElementById("blueprintsModal").style.display = "none";
+}
+
+function renderBlueprints() {
+  const list = document.getElementById("blueprintList");
+  const learnedTab = document.getElementById("bpLearnedTab");
+  const neededTab = document.getElementById("bpNeededTab");
+
+  learnedTab.classList.toggle("active", blueprintView === "learned");
+  neededTab.classList.toggle("active", blueprintView === "needed");
+
+  const data = blueprints[blueprintView] || [];
+
+  if (data.length === 0) {
+    list.innerHTML = `<div class="muted">No blueprints found.</div>`;
+    return;
+  }
+
+  list.innerHTML = data.map(item => `
+    <div class="bp-row">
+      <span>${escapeHtml(item)}</span>
+      <strong>${blueprintView === "learned" ? "Learned" : "Needed"}</strong>
+    </div>
+  `).join("");
 }
 
 function escapeHtml(value) {
