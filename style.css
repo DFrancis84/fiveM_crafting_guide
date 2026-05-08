@@ -602,6 +602,7 @@ button:active {
 
 .bp-list {
   display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
   max-height: 50vh;
   overflow-y: auto;
@@ -610,16 +611,33 @@ button:active {
 .bp-row {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
   background: rgba(2, 6, 23, 0.82);
   border: 1px solid var(--line-soft);
   border-radius: 12px;
-  padding: 10px;
+  padding: 8px 10px;
+}
+
+.bp-row span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .bp-row strong {
   color: var(--cyan);
+  font-size: 16px;
+}
+
+.bp-row.compact {
+  min-height: 38px;
+}
+
+@media (max-width: 620px) {
+  .bp-list {
+    grid-template-columns: 1fr;
+  }
 }
 
 .bp-close-row {
