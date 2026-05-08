@@ -21,7 +21,8 @@ const nonRecyclableMaterials = new Set([
   "Radio",
   "Steel Bar",
   "Leather Hide",
-  "Sewing Thread"
+  "Sewing Thread",
+  "Thermite Powder"
 ]);
 
 let items = {};
