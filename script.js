@@ -601,6 +601,7 @@ function renderBlueprints() {
   neededTab.classList.toggle("active", blueprintView === "needed");
 
   const data = blueprints[blueprintView] || [];
+  const statusText = blueprintView === "learned" ? "✓" : "✕";
 
   if (data.length === 0) {
     list.innerHTML = `<div class="muted">No blueprints found.</div>`;
@@ -608,9 +609,9 @@ function renderBlueprints() {
   }
 
   list.innerHTML = data.map(item => `
-    <div class="bp-row">
+    <div class="bp-row compact">
       <span>${escapeHtml(item)}</span>
-      <strong>${blueprintView === "learned" ? "Learned" : "Needed"}</strong>
+      <strong>${statusText}</strong>
     </div>
   `).join("");
 }
