@@ -578,6 +578,49 @@ button:active {
   color: white;
   padding: 0;
 }
+.blueprint-top-btn {
+  margin: 10px auto 0;
+  display: inline-flex;
+}
+
+.bp-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.bp-tabs button {
+  background: rgba(15, 23, 42, 0.96);
+  color: var(--text);
+}
+
+.bp-tabs button.active {
+  background: linear-gradient(135deg, #38bdf8, #a78bfa);
+  color: #020617;
+}
+
+.bp-list {
+  display: grid;
+  gap: 8px;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.bp-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+  background: rgba(2, 6, 23, 0.82);
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.bp-row strong {
+  color: var(--cyan);
+}
 
 @media (max-width: 760px) {
   .app {
