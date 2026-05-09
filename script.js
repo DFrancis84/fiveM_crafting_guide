@@ -323,38 +323,27 @@ function getMaterials(item, qty, result = {}, ownedComponentBudget = {}) {
 
   if (!itemData) return result;
 
-  // ADD DIRECT MATERIALS
   Object.entries(itemData.materials || {}).forEach(([mat, val]) => {
     const amount = Number(val) || 0;
 
     if (amount > 0) {
-      result[mat] = (result[mat] || 0) + (amount * qty);
+      result[mat] = (result[mat] || 0) + amount * qty;
     }
   });
 
-  // PROCESS COMPONENTS
   const comps = recipes[item] || [];
 
   comps.forEach(c => {
-    let neededQty = c.qty * qty;
+    let neededQty = Number(c.qty || 0) * qty;
 
     if (ownedComponentBudget[c.component] > 0) {
-      const usedOwned = Math.min(
-        neededQty,
-        ownedComponentBudget[c.component]
-      );
-
+      const usedOwned = Math.min(neededQty, ownedComponentBudget[c.component]);
       neededQty -= usedOwned;
       ownedComponentBudget[c.component] -= usedOwned;
     }
 
     if (neededQty > 0) {
-      getMaterials(
-        c.component,
-        neededQty,
-        result,
-        ownedComponentBudget
-      );
+      getMaterials(c.component, neededQty, result, ownedComponentBudget);
     }
   });
 
