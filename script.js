@@ -317,26 +317,46 @@ function getComponents(item, qty, result = {}) {
 }
 
 function getMaterials(item, qty, result = {}, ownedComponentBudget = {}) {
+  if (!item || qty <= 0) return result;
+
   const itemData = items[item];
-  if (!itemData || qty <= 0) return result;
 
-  Object.entries(itemData.materials || {}).forEach(([mat, val]) => {
-    result[mat] = (result[mat] || 0) + val * qty;
-  });
+  // ADD THIS ITEM'S DIRECT MATERIALS
+  if (itemData?.materials) {
+    Object.entries(itemData.materials).forEach(([mat, val]) => {
+      const amount = Number(val) || 0;
 
+      if (amount > 0) {
+        result[mat] = (result[mat] || 0) + (amount * qty);
+      }
+    });
+  }
+
+  // THEN RECURSE COMPONENTS
   const comps = recipes[item];
 
-  if (comps) {
+  if (comps && comps.length) {
     comps.forEach(c => {
       let neededQty = c.qty * qty;
 
       if (ownedComponentBudget[c.component] > 0) {
-        const usedOwned = Math.min(neededQty, ownedComponentBudget[c.component]);
+        const usedOwned = Math.min(
+          neededQty,
+          ownedComponentBudget[c.component]
+        );
+
         neededQty -= usedOwned;
         ownedComponentBudget[c.component] -= usedOwned;
       }
 
-      getMaterials(c.component, neededQty, result, ownedComponentBudget);
+      if (neededQty > 0) {
+        getMaterials(
+          c.component,
+          neededQty,
+          result,
+          ownedComponentBudget
+        );
+      }
     });
   }
 
